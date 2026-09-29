@@ -1,0 +1,10 @@
+# Antigravity & OS metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Project local files
+node_modules/
+dist/
+*.log
+scratch/

@@ -1,0 +1,77 @@
+# Which Way to Go! (K2G Online) - Project & Agent Guidelines
+
+## 1. Project Overview
+**Which Way to Go!** (K2G) is an online multiplayer board game adaptation of the original board game designed by Upal Mahbub (2022). Set in a stylized transit network of Dhaka, Bangladesh, players navigate from the **START** node to the **STOP** node using multiple modes of transportation (Walk/Run, Bike, Car, Bus, Train), balancing speed, money, dynamic traffic conditions, and strategic ability cards.
+
+- **Game Title**: Which Way to Go! / K2G Game Online
+- **Creator**: Upal Mahbub
+- **Target Platform**: HTML5 Modern Web Application (Desktop & Mobile Browser friendly)
+- **Supported Players**: 2 to 8 Players (Local Pass-and-Play + Smart AI Bots + Online WebRTC/Socket ready)
+
+---
+
+## 2. Directory Structure & Assets
+- `board_game_assets/`
+  - `K2G-WhichWayToGo-Borad-v2.jpg`: Original Dhaka board game map (1728x1728) with START/STOP nodes, red/green/blue roads, train lines, hospitals, and vehicle stations.
+  - `power_cards_accessories.pdf`: Official graphics for Score Card, Traffic Status Indicator Card, Speed Chart, Player Boards, Tokens, and Ability Cards.
+  - `Which Way 2 Go - Generic Rule Book.docx`: Comprehensive game rulebook.
+- `index.html`: Main HTML5 game entrance.
+- `css/style.css`: Modern UI stylesheets and animations.
+- `js/`: Modular JavaScript codebase:
+  - `game_data.js`: Board graph definition, traffic status table, speed charts, and ability card decks.
+  - `audio.js`: Procedural Web Audio API sound effects.
+  - `game_engine.js`: Turn/Phase state machine, movement validation, scoring, cards, and endgame calculations.
+  - `ai_player.js`: Heuristic AI opponent bot for solo & mixed play.
+  - `board_renderer.js`: Canvas/SVG renderer with zoom, pan, token animations, and visual overlays.
+  - `app.js`: Main UI event dispatcher and HUD controller.
+
+---
+
+## 3. Core Game Mechanics & Rules Summary
+
+### A. Setup
+- 2–8 players with unique token colors.
+- Starting Currency: **12 Units** (4 coins × 3 units each).
+- Starting Position: All tokens at **START**.
+- Round 1 Traffic: All roads are **MEDIUM TRAFFIC**.
+- Priority Token randomly assigned to Player 1.
+
+### B. Rounds & Turn Phases
+1. **Ability Round**:
+   - Skipped in Round 1.
+   - Priority token holder goes first, then rotates clockwise.
+   - Play mandatory cards (*Play Right Away / Play At Once*) or optional cards (*Play Once Any Time*).
+2. **Travel Round**:
+   - Priority token holder moves first.
+   - Player must move at least 1 node along a connected valid route.
+   - Choose transport:
+     - **Walk/Run**: 0 cost. Earns 3 pts.
+     - **Bike**: 3 cost. Earns 3 (Heavy) / 6 (Med) / 9 (Light) pts.
+     - **Car**: 6 cost. Earns 9 (Heavy) / 12 (Med) / 18 (Light) pts.
+     - **Bus**: 3 cost. Earns 6 (Heavy) / 9 (Med) / 12 (Light) pts. Only board/exit at Bus Stations.
+     - **Train**: 9 cost. Earns 15 pts (fixed). Only board/exit at Train Stations. Immune to traffic.
+3. **Traffic System**:
+   - From Round 2+, roll 6-sided dice to determine traffic row on the Traffic Status Card:
+     - Row 1: Blue=Heavy, Red=Med, Green=Light
+     - Row 2: Blue=Heavy, Green=Med, Red=Light
+     - Row 3: Green=Heavy, Red=Med, Blue=Light
+     - Row 4: Green=Heavy, Blue=Med, Red=Light
+     - Row 5: Red=Heavy, Green=Med, Blue=Light
+     - Row 6: Red=Heavy, Blue=Med, Green=Light
+4. **Ability Cards**:
+   - Landing on 'A' node: Draw 2 cards, keep 1, discard 1.
+   - Cards include personal buffs, personal penalties, opponent attacks, and global traffic/road manipulation.
+5. **Score & End Game**:
+   - Points milestone bonus: Crossing 33, 66, 100 points grants +3 coins (+9 currency).
+   - Game concludes when a player reaches **STOP**.
+   - **Fastest Player Bonus**: +15 pts.
+   - **Remaining Money Bonus**: 1 currency = +1 pt.
+   - **Distance Penalty**: Remaining players lose 6 pts per node distance to STOP.
+   - Highest total score wins!
+
+---
+
+## 4. Development Guidelines for Antigravity Agents
+1. **Zero External Dependencies**: All game features run client-side using standard HTML5 Canvas, Web Audio API, and vanilla modern ES6+ JavaScript.
+2. **Documentation Integrity**: Maintain clear inline comments and modular design.
+3. **Asset Preservation**: Do not alter original assets in `board_game_assets/`.

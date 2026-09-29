@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Which Way to Go! (K2G Online) - Dhaka Transit Board Game</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚦</text></svg>">
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header>
+    <div class="brand">
+      <span class="brand-icon">🚦</span>
+      <div>
+        <h1>Which Way to Go!</h1>
+      </div>
+    </div>
+
+    <!-- Central Turn & Phase Tracker -->
+    <div class="round-tracker">
+      <span class="round-title" id="roundNumber">Round 1</span>
+      <span class="phase-tag travel-phase" id="phaseBadge">🚗 TRAVEL ROUND</span>
+    </div>
+
+    <!-- Navigation & Utility Buttons -->
+    <div class="header-actions">
+      <button class="btn-nav" id="soundToggleBtn">🔊 Sound: On</button>
+      <button class="btn-nav" id="rulesNavBtn">📖 Rules</button>
+      <button class="btn-nav btn-primary" id="newGameNavBtn">🎮 New Game</button>
+    </div>
+  </header>
+
+  <!-- Main Game Workspace -->
+  <div class="app-container">
+
+    <!-- Interactive Canvas Viewport -->
+    <main class="board-viewport">
+      <canvas id="boardCanvas"></canvas>
+
+      <!-- Card Reveal Notification Banner -->
+      <div class="card-reveal-banner" id="cardRevealBanner">
+        <div class="reveal-badge">⚡ ABILITY CARD REVEALED!</div>
+        <div class="reveal-content">
+          <div class="reveal-title-row">
+            <span class="reveal-player-tag" id="revealPlayerName">Player</span>
+            <span class="reveal-card-title" id="revealCardTitle">Card Name</span>
+          </div>
+          <div class="reveal-desc" id="revealCardDesc">Effect description</div>
+        </div>
+        <button class="reveal-close-btn" id="closeRevealBtn" title="Dismiss">✕</button>
+      </div>
+
+      <!-- Viewport Controls -->
+      <div class="canvas-controls">
+        <button class="control-btn" id="toggleLegendBtn" title="Toggle Legend Overlay">🗺️ Legend</button>
+        <button class="control-btn" id="findActivePlayerBtn" title="Center on Active Player Location">📍 Find My Token</button>
+        <button class="control-btn" id="resetZoomBtn" title="Reset View & Center Board">🎯 Center Board</button>
+      </div>
+
+      <!-- Map Legend Panel (Roads & Transport Modes) -->
+      <div class="map-legend-panel" id="mapLegendPanel">
+        <div class="legend-header">
+          <span class="legend-title">🗺️ MAP & TRANSIT LEGEND</span>
+          <button class="legend-close-btn" id="closeLegendBtn">✕</button>
+        </div>
+
+        <!-- 1. Road & Rail Network -->
+        <div class="legend-section">
+          <div class="legend-section-title">🛣️ Roads & Rail Tracks</div>
+          <div class="legend-item">
+            <span class="legend-swatch swatch-red"></span>
+            <div class="legend-item-text">
+              <strong>Red Road</strong>
+              <span>Dynamic traffic (Dice roll sets Heavy / Med / Light)</span>
+            </div>
+          </div>
+          <div class="legend-item">
+            <span class="legend-swatch swatch-green"></span>
+            <div class="legend-item-text">
+              <strong>Green Road</strong>
+              <span>Dynamic traffic (Dice roll sets Heavy / Med / Light)</span>
+            </div>
+          </div>
+          <div class="legend-item">
+            <span class="legend-swatch swatch-blue"></span>
+            <div class="legend-item-text">
+              <strong>Blue Road</strong>
+              <span>Dynamic traffic (Dice roll sets Heavy / Med / Light)</span>
+            </div>
+          </div>
+          <div class="legend-item">
+            <span class="legend-swatch swatch-rail"></span>
+            <div class="legend-item-text">
+              <strong>Express Railway</strong>
+              <span>Train only • Fixed 15 pts speed • Bypasses road traffic</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Transportation Modes -->
+        <div class="legend-section">
+          <div class="legend-section-title">🚗 Transportation & Costs</div>
+          <div class="legend-grid">
+            <div class="transport-legend-badge">
+              <span class="t-icon">🏃</span>
+              <div class="t-info">
+                <strong>Walk / Run</strong>
+                <span>Cost: Free (0) • 3 pts</span>
+              </div>
+            </div>
+            <div class="transport-legend-badge">
+              <span class="t-icon">🏍️</span>
+              <div class="t-info">
+                <strong>Bike</strong>
+                <span>Cost: 3 • 3/6/9 pts</span>
+              </div>
+            </div>
+            <div class="transport-legend-badge">
+              <span class="t-icon">🚗</span>
+              <div class="t-info">
+                <strong>Car / Taxi</strong>
+                <span>Cost: 6 • 9/12/18 pts</span>
+              </div>
+            </div>
+            <div class="transport-legend-badge">
+              <span class="t-icon">🚌</span>
+              <div class="t-info">
+                <strong>Public Bus</strong>
+                <span>Cost: 3 • 6/9/12 pts</span>
+              </div>
+            </div>
+            <div class="transport-legend-badge" style="grid-column: span 2;">
+              <span class="t-icon">🚂</span>
+              <div class="t-info">
+                <strong>Express Train</strong>
+                <span>Cost: 9 • Fixed 15 pts (Stations only)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Node Station Badges -->
+        <div class="legend-section">
+          <div class="legend-section-title">📍 Node Station Symbols</div>
+          <div class="node-symbols-row">
+            <span class="node-sym-pill"><strong style="color: #ef4444;">A</strong> Ability Card</span>
+            <span class="node-sym-pill"><strong style="color: #ef4444;">✚</strong> Hospital</span>
+            <span class="node-sym-pill"><strong>🏍️ 🚗 🚌 🚂</strong> Vehicle Stations</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Node Hover Tooltip -->
+      <div class="node-tooltip" id="nodeTooltip"></div>
+    </main>
+
+    <!-- Right HUD Sidebar -->
+    <aside class="hud-sidebar">
+
+      <!-- Active Player Card -->
+      <div class="player-turn-card" id="activePlayerCard">
+        <div class="turn-header">
+          <div class="turn-title-group">
+            <span class="color-dot" id="activePlayerColorDot"></span>
+            <span class="player-name" id="activePlayerName">Player 1</span>
+          </div>
+          <span class="priority-badge" id="priorityBadge">Priority: <strong id="priorityHolderName">P1</strong></span>
+        </div>
+
+        <!-- Current Location & Transport Mode Display -->
+        <div class="location-status-bar" id="playerLocationBar">
+          <div class="location-info">
+            <span class="location-label">📍 Current Location:</span>
+            <strong class="location-name" id="activePlayerLocation">START</strong>
+          </div>
+          <div class="current-vehicle-badge" id="activePlayerVehicleTag">
+            <span>Mode: 🏃 Walk</span>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-label">Score</div>
+            <div class="stat-val" id="activePlayerScore" style="color: var(--accent-gold);">0 pts</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">Currency</div>
+            <div class="stat-val" id="activePlayerMoney" style="color: var(--accent-green);">12 units</div>
+          </div>
+        </div>
+
+        <div class="tokens-row">
+          <span>Held Vehicles:</span>
+          <div id="activeVehicleTokens" style="display:flex; gap:6px;">
+            <span class="empty-hint">None</span>
+          </div>
+        </div>
+
+        <!-- Held Ability Cards Panel -->
+        <div class="player-hand-section" id="playerHandSection">
+          <div class="hand-header">
+            <span>🎴 Held Ability Cards (<strong id="handCardsCount">0</strong>):</span>
+          </div>
+          <div id="activePlayerCardsList" class="player-hand-list">
+            <span class="empty-hint">No ability cards held</span>
+          </div>
+        </div>
+
+        <!-- Ability Round Action Button -->
+        <div id="abilityActionsPanel" style="display: none; margin-top: 12px;" class="ability-action-box">
+          <button class="btn-secondary" id="passAbilityBtn">Pass / End Ability Turn ⏭️</button>
+        </div>
+      </div>
+
+      <!-- Traffic Status Card Widget -->
+      <div class="traffic-widget">
+        <div class="widget-header">
+          <span>🚦 TRAFFIC STATUS CARD</span>
+          <span class="dice-result" id="trafficDiceDisplay">⚪ Round 1</span>
+        </div>
+        <div class="traffic-table" id="trafficCardRows">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <!-- Speed Chart Quick View -->
+      <div class="speed-chart-summary">
+        <div style="font-size: 13px; font-weight: 700;">⚡ SPEED & COST CHART</div>
+        <table class="speed-table">
+          <thead>
+            <tr>
+              <th>Mode</th>
+              <th>Cost</th>
+              <th>Heavy</th>
+              <th>Med</th>
+              <th>Light</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>🏃 Run</td>
+              <td>0</td>
+              <td>3</td>
+              <td>3</td>
+              <td>3</td>
+            </tr>
+            <tr>
+              <td>🏍️ Bike</td>
+              <td>3</td>
+              <td>3</td>
+              <td>6</td>
+              <td>9</td>
+            </tr>
+            <tr>
+              <td>🚗 Car</td>
+              <td>6</td>
+              <td>9</td>
+              <td>12</td>
+              <td>18</td>
+            </tr>
+            <tr>
+              <td>🚌 Bus</td>
+              <td>3</td>
+              <td>6</td>
+              <td>9</td>
+              <td>12</td>
+            </tr>
+            <tr>
+              <td>🚂 Train</td>
+              <td>9</td>
+              <td>15</td>
+              <td>15</td>
+              <td>15</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- All Players Mini Status List -->
+      <div class="players-overview">
+        <div style="font-size: 13px; font-weight: 700; margin-bottom: 6px;">👥 PLAYERS</div>
+        <div id="allPlayersList"></div>
+      </div>
+
+      <!-- Live Action Log -->
+      <div class="log-card">
+        <div style="font-size: 13px; font-weight: 700;">📜 GAME LOG</div>
+        <div class="log-content" id="gameLogBox"></div>
+      </div>
+
+    </aside>
+  </div>
+
+  <!-- MODALS -->
+
+  <!-- 1. New Game / Setup Modal -->
+  <div class="modal-backdrop" id="setupModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h2>🎮 New Game Setup</h2>
+      </div>
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+        Choose player count (2 to 8) and configure human or AI opponents.
+      </p>
+
+      <div style="margin-bottom: 16px;">
+        <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">Number of Players:</label>
+        <select class="form-select" id="playerCountSelect" style="width: 100%;">
+          <option value="2">2 Players</option>
+          <option value="3">3 Players</option>
+          <option value="4" selected>4 Players</option>
+          <option value="5">5 Players</option>
+          <option value="6">6 Players</option>
+          <option value="7">7 Players</option>
+          <option value="8">8 Players</option>
+        </select>
+      </div>
+
+      <div id="playerInputsContainer"></div>
+
+      <button class="btn-primary" id="startGameBtn" style="width: 100%; padding: 12px; margin-top: 16px; font-size: 15px; border-radius: 8px; cursor: pointer;">
+        START GAME 🏁
+      </button>
+    </div>
+  </div>
+
+  <!-- 2. Vehicle Choice Modal -->
+  <div class="modal-backdrop" id="vehicleChoiceModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h2>Select Transportation</h2>
+      </div>
+      <p style="font-size: 13px; color: var(--text-muted);">
+        Destination: <strong id="vehicleChoiceNodeName" style="color: #fff;"></strong>
+      </p>
+      <div class="vehicle-options-list" id="vehicleOptionsContainer"></div>
+    </div>
+  </div>
+
+  <!-- 3. Ability Card Draw Modal (Draw 2, Keep 1 - Private) -->
+  <div class="modal-backdrop" id="cardDrawModal">
+    <div class="modal-dialog" style="max-width: 640px;">
+      <div class="modal-header">
+        <h2>🔒 Secret Ability Card Draw</h2>
+      </div>
+      <p style="font-size: 13px; color: var(--text-muted);">
+        <strong id="cardDrawPlayerName" style="color: #fbbf24;">Player</strong> landed on an Ability Card node.
+        Pick one card to <strong>KEEP secretly in your hand</strong>; the other will be discarded.
+      </p>
+      <div style="font-size: 12px; color: #34d399; background: rgba(52, 211, 153, 0.1); border: 1px solid rgba(52, 211, 153, 0.25); padding: 6px 10px; border-radius: 6px; margin-bottom: 12px;">
+        👁️ <strong>Privacy Rule:</strong> Other players will only see that you are holding an Ability Card. The card ability remains hidden until you play it!
+      </div>
+      <div class="cards-draw-grid" id="drawCardsContainer"></div>
+    </div>
+  </div>
+
+  <!-- 4. Game Over Modal -->
+  <div class="modal-backdrop" id="gameOverModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h2>🏆 GAME OVER - FINAL STANDINGS</h2>
+      </div>
+      <p style="font-size: 13px; color: var(--text-muted);">
+        The race to Keraniganj STOP has completed! Here are the final scores after all bonuses and distance penalties:
+      </p>
+      <table class="leaderboard-table">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Player</th>
+            <th>Total Score</th>
+            <th>Fastest</th>
+            <th>Money</th>
+            <th>Distance Penalty</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboardBody"></tbody>
+      </table>
+      <button class="btn-primary" onclick="location.reload()" style="width: 100%; padding: 12px; margin-top: 20px; font-size: 14px; border-radius: 8px; cursor: pointer;">
+        Play Again 🔄
+      </button>
+    </div>
+  </div>
+
+  <!-- 5. Official Rules Modal -->
+  <div class="modal-backdrop" id="rulesModal">
+    <div class="modal-dialog" style="max-width: 680px;">
+      <div class="modal-header">
+        <h2>📖 Which Way to Go! - Official Rules</h2>
+        <button class="btn-nav" id="closeRulesBtn">✕ Close</button>
+      </div>
+      <div style="font-size: 13px; line-height: 1.6; color: #cbd5e1; display: flex; flex-direction: column; gap: 12px;">
+        <p><strong>Goal:</strong> Travel from <strong>START</strong> to <strong>STOP</strong> across Dhaka with maximum points and leftover currency.</p>
+        
+        <h4 style="color: #fbbf24;">🚦 Traffic System</h4>
+        <p>In Round 1, all roads are Medium traffic. From Round 2 onward, a 6-sided dice roll sets which road colors (Red, Green, Blue) are Heavy, Medium, and Light.</p>
+
+        <h4 style="color: #fbbf24;">🚗 Vehicles & Speed Chart</h4>
+        <ul>
+          <li><strong>🏃 Walk/Run:</strong> Free (0 cost). Always earns 3 pts.</li>
+          <li><strong>🏍️ Bike:</strong> Cost 3. Speed: 3 (Heavy), 6 (Med), 9 (Light).</li>
+          <li><strong>🚗 Car:</strong> Cost 6. Speed: 9 (Heavy), 12 (Med), 18 (Light).</li>
+          <li><strong>🚌 Bus:</strong> Cost 3. Speed: 6 (Heavy), 9 (Med), 12 (Light). Only boards/alights at Bus Stations.</li>
+          <li><strong>🚂 Train:</strong> Cost 9. Fixed 15 pts speed! Runs exclusively on Railroad tracks and ignores traffic completely.</li>
+        </ul>
+
+        <h4 style="color: #fbbf24;">🎴 Ability Cards</h4>
+        <p>Landing on an 'A' node lets you draw 2 cards: keep 1, discard 1. Cards give speed boosts, extra money, roadblock controls, or steal tokens and points from opponents.</p>
+
+        <h4 style="color: #fbbf24;">🏁 Scoring & Endgame</h4>
+        <ul>
+          <li>Points milestones: Crossing 33, 66, and 100 pts awards <strong>+9 currency (3 coins)</strong>.</li>
+          <li><strong>Fastest Player Bonus:</strong> First to reach STOP gets <strong>+15 points</strong>.</li>
+          <li><strong>Money Bonus:</strong> 1 leftover currency = <strong>+1 point</strong>.</li>
+          <li><strong>Distance Penalty:</strong> Remaining players lose <strong>6 points per stop</strong> from STOP.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Card Action Selection Modal -->
+  <div class="modal-backdrop" id="cardActionModal">
+    <div class="modal-dialog" style="max-width: 520px;">
+      <div class="modal-header">
+        <h2 id="cardActionModalTitle">🎴 Play Ability Card</h2>
+        <button class="btn-nav" id="closeCardActionBtn">✕</button>
+      </div>
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;" id="cardActionModalDesc">
+        Choose your option to execute this card:
+      </p>
+      <div id="cardActionOptionsContainer" style="display: flex; flex-direction: column; gap: 10px; margin-top: 14px;">
+        <!-- Dynamically injected option cards -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Main JavaScript Standalone Script -->
+  <script src="js/game.js"></script>
+</body>
+</html>
