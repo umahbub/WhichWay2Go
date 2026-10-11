@@ -52,124 +52,355 @@
     { id: 'p_pink',   name: 'Hot Pink',      hex: '#ec4899', darkHex: '#9d174d', text: '#ffffff' }
   ];
 
-  // ORGANIC STAGGERED GRAPH DEFINITION (Varied Coordinates & Distances)
-  const BOARD_NODES = [
-    // Level 0: START Departure Hub
-    { id: 'START', name: 'START: Gulshan North Hub', area: 'Gulshan', level: 0, x: 0.500, y: 0.070, isStart: true, isStop: false, hasCar: true, hasBike: true, hasBus: true, hasTrain: false, hasHospital: false, hasCard: false },
+  // ==========================================
+  // PROCEDURAL DYNAMIC DHAKA MAP GENERATOR
+  // ==========================================
+  const DHAKA_LOCATION_POOLS = {
+    start: [
+      { name: 'START: Gulshan North Hub', area: 'Gulshan' },
+      { name: 'START: Baridhara Diplomatic Gate', area: 'Baridhara' },
+      { name: 'START: Uttara Sector 3 Terminal', area: 'Uttara' }
+    ],
+    level1: [
+      { name: 'Mirpur 10 Circle Hub', area: 'Mirpur' },
+      { name: 'Banani Commercial Plaza', area: 'Banani' },
+      { name: 'Gulshan 2 Avenue', area: 'Gulshan' },
+      { name: 'Niketan Lake Crossing', area: 'Niketan' },
+      { name: 'Cantonment Rail Gate', area: 'Cantonment' },
+      { name: 'Kuril Flyover Junction', area: 'Kuril' },
+      { name: 'Airport Road Express Link', area: 'Uttara' },
+      { name: 'Mohakhali North Terminal', area: 'Mohakhali' }
+    ],
+    level2: [
+      { name: 'Tejgaon Industrial Corridor', area: 'Tejgaon' },
+      { name: 'Gabtoli Inter-District Terminal', area: 'Gabtoli' },
+      { name: 'Chandrima Udyan Square', area: 'Chandrima' },
+      { name: 'Badda Link Avenue', area: 'Badda' },
+      { name: 'Banasree North Entry', area: 'Banasree' },
+      { name: 'Bijoy Sarani Overpass', area: 'Tejgaon' },
+      { name: 'Agargaon Administrative Hub', area: 'Agargaon' },
+      { name: 'Khamarbari Central Park', area: 'Farmgate' }
+    ],
+    level3: [
+      { name: 'Farmgate Overbridge Crossing', area: 'Farmgate' },
+      { name: 'Mohammadpur Bus Depot', area: 'Mohammadpur' },
+      { name: 'Moghbazar Double Flyover', area: 'Moghbazar' },
+      { name: 'Malibagh Rail Crossing', area: 'Malibagh' },
+      { name: 'Kawran Bazar Trade Center', area: 'Kawran Bazar' },
+      { name: 'Panthapath Commercial Circle', area: 'Panthapath' },
+      { name: 'Dhanmondi 27 Hub', area: 'Dhanmondi' },
+      { name: 'Rampura Bridge Crossing', area: 'Rampura' }
+    ],
+    level4: [
+      { name: 'Shahbagh Cultural Circle', area: 'Shahbagh' },
+      { name: 'Dhaka New Market Square', area: 'New Market' },
+      { name: 'Motijheel Commercial Core', area: 'Motijheel' },
+      { name: 'Boshila South Bridge Link', area: 'Boshila' },
+      { name: 'Kakrail VIP Intersection', area: 'Kakrail' },
+      { name: 'Paltan Central Square', area: 'Paltan' },
+      { name: 'Elephant Road Market Link', area: 'Dhanmondi' },
+      { name: 'Shantinagar Crossing', area: 'Shantinagar' }
+    ],
+    level5: [
+      { name: 'Sadarghat River Terminal', area: 'Sadarghat' },
+      { name: 'Lalbagh Fort Heritage Gate', area: 'Lalbagh' },
+      { name: 'Chawkbazar Historical Bazaar', area: 'Old Dhaka' },
+      { name: 'Ahsan Manzil Riverside', area: 'Old Dhaka' },
+      { name: 'Postogola Bridge Highway', area: 'Postogola' },
+      { name: 'Dhakeshwari Temple Hub', area: 'Old Dhaka' },
+      { name: 'Armanitola Historic Plaza', area: 'Old Dhaka' },
+      { name: 'Wari Heritage District', area: 'Wari' }
+    ],
+    stop: [
+      { name: 'STOP: Keraniganj South Hub', area: 'Keraniganj' },
+      { name: 'STOP: Buriganga South Gateway', area: 'Keraniganj' }
+    ]
+  };
 
-    // Level 1: North Dhaka Transit Hubs (Staggered y: 0.160 - 0.235)
-    { id: 'L1_MIR', name: 'Mirpur Cantonment Rail Station', area: 'Mirpur', level: 1, x: 0.140, y: 0.220, isStart: false, isStop: false, hasCar: true, hasBike: true, hasBus: false, hasTrain: true, hasHospital: false, hasCard: false },
-    { id: 'L1_BAN', name: 'Banani Commercial Junction', area: 'Banani', level: 1, x: 0.360, y: 0.160, isStart: false, isStop: false, hasCar: false, hasBike: true, hasBus: true, hasTrain: false, hasHospital: false, hasCard: true },
-    { id: 'L1_GUL', name: 'Gulshan 1 Circle', area: 'Gulshan', level: 1, x: 0.650, y: 0.235, isStart: false, isStop: false, hasCar: true, hasBike: true, hasBus: false, hasTrain: false, hasHospital: false, hasCard: false },
-    { id: 'L1_NIK', name: 'Niketan Lake Avenue', area: 'Niketan', level: 1, x: 0.860, y: 0.180, isStart: false, isStop: false, hasCar: true, hasBike: false, hasBus: true, hasTrain: false, hasHospital: false, hasCard: true },
+  class DynamicMapGenerator {
+    static generateMap(levelCount = 5) {
+      const nodes = [];
+      const edges = [];
+      const colors = ['red', 'green', 'blue'];
+      let edgeCounter = 1;
 
-    // Level 2: North-Central Hubs (Staggered y: 0.315 - 0.410)
-    { id: 'L2_GAB', name: 'Gabtoli Rail & River Terminal', area: 'Gabtoli', level: 2, x: 0.110, y: 0.370, isStart: false, isStop: false, hasCar: false, hasBike: true, hasBus: true, hasTrain: true, hasHospital: true, hasCard: false },
-    { id: 'L2_CHN', name: 'Chandrima Udyan Park', area: 'Chandrima', level: 2, x: 0.330, y: 0.315, isStart: false, isStop: false, hasCar: false, hasBike: true, hasBus: false, hasTrain: false, hasHospital: false, hasCard: true },
-    { id: 'L2_TEJ', name: 'Tejgaon Rail & Industrial Hub', area: 'Tejgaon', level: 2, x: 0.550, y: 0.400, isStart: false, isStop: false, hasCar: true, hasBike: false, hasBus: true, hasTrain: true, hasHospital: false, hasCard: false },
-    { id: 'L2_BAD', name: 'Badda Link Crossing', area: 'Badda', level: 2, x: 0.770, y: 0.335, isStart: false, isStop: false, hasCar: true, hasBike: true, hasBus: false, hasTrain: false, hasHospital: false, hasCard: false },
-    { id: 'L2_BNE', name: 'Banasree North Gate', area: 'Banasree', level: 2, x: 0.900, y: 0.410, isStart: false, isStop: false, hasCar: false, hasBike: true, hasBus: true, hasTrain: false, hasHospital: false, hasCard: true },
+      // Helper for shuffling array
+      const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
 
-    // Level 3: Central Dhaka Hubs (Staggered y: 0.470 - 0.555)
-    { id: 'L3_MOH', name: 'Mohammadpur Bus Depot', area: 'Mohammadpur', level: 3, x: 0.130, y: 0.535, isStart: false, isStop: false, hasCar: true, hasBike: false, hasBus: true, hasTrain: false, hasHospital: false, hasCard: false },
-    { id: 'L3_FAR', name: 'Farmgate Central Hospital & Rail', area: 'Farmgate', level: 3, x: 0.380, y: 0.470, isStart: false, isStop: false, hasCar: false, hasBike: true, hasBus: true, hasTrain: true, hasHospital: true, hasCard: false },
-    { id: 'L3_MOG', name: 'Moghbazar Flyover Crossing', area: 'Moghbazar', level: 3, x: 0.590, y: 0.555, isStart: false, isStop: false, hasCar: true, hasBike: true, hasBus: false, hasTrain: false, hasHospital: false, hasCard: true },
-    { id: 'L3_MAL', name: 'Malibagh Central Rail Junction', area: 'Malibagh', level: 3, x: 0.760, y: 0.485, isStart: false, isStop: false, hasCar: false, hasBike: false, hasBus: true, hasTrain: true, hasHospital: false, hasCard: false },
-    { id: 'L3_BSE', name: 'Banasree East Canal', area: 'Banasree', level: 3, x: 0.890, y: 0.550, isStart: false, isStop: false, hasCar: true, hasBike: true, hasBus: false, hasTrain: false, hasHospital: false, hasCard: false },
+      // 1. START NODE (Level 0)
+      const startPool = shuffle(DHAKA_LOCATION_POOLS.start);
+      const startLoc = startPool[0];
+      const startNode = {
+        id: 'START',
+        name: startLoc.name,
+        area: startLoc.area,
+        level: 0,
+        x: 0.500,
+        y: 0.070,
+        isStart: true,
+        isStop: false,
+        hasCar: true,
+        hasBike: true,
+        hasBus: true,
+        hasTrain: false,
+        hasHospital: false,
+        hasCard: false
+      };
+      nodes.push(startNode);
 
-    // Level 4: South-Central Hubs (Staggered y: 0.630 - 0.715)
-    { id: 'L4_BOS', name: 'Boshila South Bridge Link', area: 'Boshila', level: 4, x: 0.100, y: 0.695, isStart: false, isStop: false, hasCar: false, hasBike: true, hasBus: true, hasTrain: false, hasHospital: false, hasCard: true },
-    { id: 'L4_NEW', name: 'Dhaka New Market Square', area: 'Dhanmondi', level: 4, x: 0.300, y: 0.630, isStart: false, isStop: false, hasCar: true, hasBike: true, hasBus: false, hasTrain: false, hasHospital: true, hasCard: false },
-    { id: 'L4_SHA', name: 'Shahbagh Cultural Circle', area: 'Shahbagh', level: 4, x: 0.490, y: 0.710, isStart: false, isStop: false, hasCar: false, hasBike: true, hasBus: true, hasTrain: false, hasHospital: false, hasCard: false },
-    { id: 'L4_MOT', name: 'Motijheel Central Rail Terminal', area: 'Motijheel', level: 4, x: 0.710, y: 0.640, isStart: false, isStop: false, hasCar: true, hasBike: false, hasBus: true, hasTrain: true, hasHospital: false, hasCard: false },
-    { id: 'L4_BSS', name: 'South Banasree Avenue', area: 'Banasree', level: 4, x: 0.880, y: 0.715, isStart: false, isStop: false, hasCar: true, hasBike: false, hasBus: true, hasTrain: false, hasHospital: false, hasCard: true },
+      // 2. GENERATE NODES FOR LEVELS 1 TO N (Strict Layer Partitioning)
+      const levelNodesMap = new Map(); // level -> array of node objects
+      const trainStationNodes = []; // 1 rail station per level for continuous curved railway
 
-    // Level 5: Old Dhaka South Hubs (Staggered y: 0.785 - 0.855)
-    { id: 'L5_LAL', name: 'Lalbagh Fort Gate & Clinic', area: 'Lalbagh', level: 5, x: 0.180, y: 0.825, isStart: false, isStop: false, hasCar: false, hasBike: true, hasBus: false, hasTrain: false, hasHospital: true, hasCard: true },
-    { id: 'L5_CHK', name: 'Chawkbazar Heritage Square', area: 'Old Dhaka', level: 5, x: 0.380, y: 0.785, isStart: false, isStop: false, hasCar: false, hasBike: true, hasBus: true, hasTrain: false, hasHospital: false, hasCard: false },
-    { id: 'L5_SAD', name: 'Sadarghat River & Rail Terminal', area: 'Sadarghat', level: 5, x: 0.560, y: 0.855, isStart: false, isStop: false, hasCar: true, hasBike: false, hasBus: true, hasTrain: true, hasHospital: false, hasCard: false },
-    { id: 'L5_AHS', name: 'Ahsan Manzil Riverside', area: 'Old Dhaka', level: 5, x: 0.750, y: 0.795, isStart: false, isStop: false, hasCar: true, hasBike: true, hasBus: false, hasTrain: false, hasHospital: false, hasCard: true },
-    { id: 'L5_POS', name: 'Postogola Highway Approach', area: 'Postogola', level: 5, x: 0.890, y: 0.840, isStart: false, isStop: false, hasCar: true, hasBike: false, hasBus: true, hasTrain: false, hasHospital: false, hasCard: false },
+      for (let lvl = 1; lvl <= levelCount; lvl++) {
+        // Random 4 or 5 nodes per level
+        const count = Math.random() > 0.45 ? 5 : 4;
+        const pool = shuffle(DHAKA_LOCATION_POOLS['level' + lvl] || DHAKA_LOCATION_POOLS.level1);
+        const currentLevelNodes = [];
 
-    // Level 6: STOP Destination Hub
-    { id: 'STOP', name: 'STOP: Keraniganj South Hub', area: 'Keraniganj', level: 6, x: 0.500, y: 0.940, isStart: false, isStop: true, hasCar: false, hasBike: false, hasBus: false, hasTrain: false, hasHospital: false, hasCard: false }
-  ];
+        // Base Y position for this level
+        const baseY = 0.08 + (lvl * 0.82) / (levelCount + 1);
 
-  const BOARD_EDGES = [
-    // Roads
-    { id: 'E_ST_L1A', from: 'START', to: 'L1_MIR', type: 'road', color: 'red' },
-    { id: 'E_ST_L1B', from: 'START', to: 'L1_BAN', type: 'road', color: 'green' },
-    { id: 'E_ST_L1C', from: 'START', to: 'L1_GUL', type: 'road', color: 'blue' },
-    { id: 'E_ST_L1D', from: 'START', to: 'L1_NIK', type: 'road', color: 'red' },
-    { id: 'E_L1_12', from: 'L1_MIR', to: 'L1_BAN', type: 'road', color: 'green' },
-    { id: 'E_L1_23', from: 'L1_BAN', to: 'L1_GUL', type: 'road', color: 'red' },
-    { id: 'E_L1_34', from: 'L1_GUL', to: 'L1_NIK', type: 'road', color: 'blue' },
-    { id: 'E_L12_1', from: 'L1_MIR', to: 'L2_GAB', type: 'road', color: 'green' },
-    { id: 'E_L12_2', from: 'L1_MIR', to: 'L2_CHN', type: 'road', color: 'red' },
-    { id: 'E_L12_3', from: 'L1_BAN', to: 'L2_CHN', type: 'road', color: 'blue' },
-    { id: 'E_L12_4', from: 'L1_BAN', to: 'L2_TEJ', type: 'road', color: 'green' },
-    { id: 'E_L12_5', from: 'L1_GUL', to: 'L2_TEJ', type: 'road', color: 'red' },
-    { id: 'E_L12_6', from: 'L1_GUL', to: 'L2_BAD', type: 'road', color: 'green' },
-    { id: 'E_L12_7', from: 'L1_NIK', to: 'L2_BAD', type: 'road', color: 'blue' },
-    { id: 'E_L12_8', from: 'L1_NIK', to: 'L2_BNE', type: 'road', color: 'red' },
-    { id: 'E_L2_12', from: 'L2_GAB', to: 'L2_CHN', type: 'road', color: 'blue' },
-    { id: 'E_L2_23', from: 'L2_CHN', to: 'L2_TEJ', type: 'road', color: 'green' },
-    { id: 'E_L2_34', from: 'L2_TEJ', to: 'L2_BAD', type: 'road', color: 'red' },
-    { id: 'E_L2_45', from: 'L2_BAD', to: 'L2_BNE', type: 'road', color: 'green' },
-    { id: 'E_L23_1', from: 'L2_GAB', to: 'L3_MOH', type: 'road', color: 'red' },
-    { id: 'E_L23_2', from: 'L2_GAB', to: 'L3_FAR', type: 'road', color: 'green' },
-    { id: 'E_L23_3', from: 'L2_CHN', to: 'L3_FAR', type: 'road', color: 'red' },
-    { id: 'E_L23_4', from: 'L2_TEJ', to: 'L3_FAR', type: 'road', color: 'blue' },
-    { id: 'E_L23_5', from: 'L2_TEJ', to: 'L3_MOG', type: 'road', color: 'green' },
-    { id: 'E_L23_6', from: 'L2_TEJ', to: 'L3_MAL', type: 'road', color: 'red' },
-    { id: 'E_L23_7', from: 'L2_BAD', to: 'L3_MOG', type: 'road', color: 'blue' },
-    { id: 'E_L23_8', from: 'L2_BAD', to: 'L3_MAL', type: 'road', color: 'green' },
-    { id: 'E_L23_9', from: 'L2_BNE', to: 'L3_MAL', type: 'road', color: 'blue' },
-    { id: 'E_L23_10', from: 'L2_BNE', to: 'L3_BSE', type: 'road', color: 'red' },
-    { id: 'E_L3_12', from: 'L3_MOH', to: 'L3_FAR', type: 'road', color: 'blue' },
-    { id: 'E_L3_23', from: 'L3_FAR', to: 'L3_MOG', type: 'road', color: 'red' },
-    { id: 'E_L3_34', from: 'L3_MOG', to: 'L3_MAL', type: 'road', color: 'green' },
-    { id: 'E_L3_45', from: 'L3_MAL', to: 'L3_BSE', type: 'road', color: 'blue' },
-    { id: 'E_L34_1', from: 'L3_MOH', to: 'L4_BOS', type: 'road', color: 'green' },
-    { id: 'E_L34_2', from: 'L3_MOH', to: 'L4_NEW', type: 'road', color: 'blue' },
-    { id: 'E_L34_3', from: 'L3_FAR', to: 'L4_NEW', type: 'road', color: 'green' },
-    { id: 'E_L34_4', from: 'L3_FAR', to: 'L4_SHA', type: 'road', color: 'red' },
-    { id: 'E_L34_5', from: 'L3_MOG', to: 'L4_SHA', type: 'road', color: 'green' },
-    { id: 'E_L34_6', from: 'L3_MOG', to: 'L4_MOT', type: 'road', color: 'blue' },
-    { id: 'E_L34_7', from: 'L3_MAL', to: 'L4_MOT', type: 'road', color: 'green' },
-    { id: 'E_L34_8', from: 'L3_MAL', to: 'L4_BSS', type: 'road', color: 'red' },
-    { id: 'E_L34_9', from: 'L3_BSE', to: 'L4_BSS', type: 'road', color: 'green' },
-    { id: 'E_L4_12', from: 'L4_BOS', to: 'L4_NEW', type: 'road', color: 'red' },
-    { id: 'E_L4_23', from: 'L4_NEW', to: 'L4_SHA', type: 'road', color: 'blue' },
-    { id: 'E_L4_34', from: 'L4_SHA', to: 'L4_MOT', type: 'road', color: 'red' },
-    { id: 'E_L4_45', from: 'L4_MOT', to: 'L4_BSS', type: 'road', color: 'blue' },
-    { id: 'E_L45_1', from: 'L4_BOS', to: 'L5_LAL', type: 'road', color: 'blue' },
-    { id: 'E_L45_2', from: 'L4_NEW', to: 'L5_LAL', type: 'road', color: 'green' },
-    { id: 'E_L45_3', from: 'L4_NEW', to: 'L5_CHK', type: 'road', color: 'red' },
-    { id: 'E_L45_4', from: 'L4_SHA', to: 'L5_CHK', type: 'road', color: 'green' },
-    { id: 'E_L45_5', from: 'L4_SHA', to: 'L5_SAD', type: 'road', color: 'blue' },
-    { id: 'E_L45_6', from: 'L4_MOT', to: 'L5_SAD', type: 'road', color: 'red' },
-    { id: 'E_L45_7', from: 'L4_MOT', to: 'L5_AHS', type: 'road', color: 'green' },
-    { id: 'E_L45_8', from: 'L4_BSS', to: 'L5_AHS', type: 'road', color: 'blue' },
-    { id: 'E_L45_9', from: 'L4_BSS', to: 'L5_POS', type: 'road', color: 'red' },
-    { id: 'E_L5_12', from: 'L5_LAL', to: 'L5_CHK', type: 'road', color: 'blue' },
-    { id: 'E_L5_23', from: 'L5_CHK', to: 'L5_SAD', type: 'road', color: 'green' },
-    { id: 'E_L5_34', from: 'L5_SAD', to: 'L5_AHS', type: 'road', color: 'red' },
-    { id: 'E_L5_45', from: 'L5_AHS', to: 'L5_POS', type: 'road', color: 'green' },
-    { id: 'E_L5_STOP1', from: 'L5_LAL', to: 'STOP', type: 'road', color: 'red' },
-    { id: 'E_L5_STOP2', from: 'L5_CHK', to: 'STOP', type: 'road', color: 'green' },
-    { id: 'E_L5_STOP3', from: 'L5_SAD', to: 'STOP', type: 'road', color: 'blue' },
-    { id: 'E_L5_STOP4', from: 'L5_AHS', to: 'STOP', type: 'road', color: 'green' },
-    { id: 'E_L5_STOP5', from: 'L5_POS', to: 'STOP', type: 'road', color: 'red' },
+        // Subdivide horizontal space
+        const xMargins = 0.12;
+        const availableWidth = 0.88 - xMargins;
+        const segWidth = availableWidth / count;
 
-    // Directed Curved Train Tracks (Max 1 outgoing train line per node)
-    { id: 'RAIL_L1_L2', from: 'L1_MIR', to: 'L2_TEJ', type: 'rail', color: 'rail', curveOffset: -55 },
-    { id: 'RAIL_L2_L3', from: 'L2_TEJ', to: 'L3_MAL', type: 'rail', color: 'rail', curveOffset: 50 },
-    { id: 'RAIL_L2GAB_L3', from: 'L2_GAB', to: 'L3_MAL', type: 'rail', color: 'rail', curveOffset: -65 },
-    { id: 'RAIL_L3_L4', from: 'L3_MAL', to: 'L4_MOT', type: 'rail', color: 'rail', curveOffset: 45 },
-    { id: 'RAIL_L3FAR_L4', from: 'L3_FAR', to: 'L4_MOT', type: 'rail', color: 'rail', curveOffset: -55 },
-    { id: 'RAIL_L4_L5', from: 'L4_MOT', to: 'L5_SAD', type: 'rail', color: 'rail', curveOffset: -45 }
-  ];
+        for (let i = 0; i < count; i++) {
+          const loc = pool[i % pool.length];
+          const segStart = xMargins + i * segWidth;
+          // Organic X with jitter
+          const x = segStart + segWidth * 0.25 + Math.random() * (segWidth * 0.50);
+          
+          // Organic non-linear Y staggering (±0.045 with alternating vertical wave)
+          const waveOffset = (i % 2 === 0 ? 0.035 : -0.035);
+          const yJitter = (Math.random() - 0.5) * 0.040;
+          const y = Math.min(0.89, Math.max(0.14, baseY + waveOffset + yJitter));
+
+          const node = {
+            id: `L${lvl}_${i + 1}`,
+            name: loc.name,
+            area: loc.area,
+            level: lvl,
+            x: parseFloat(x.toFixed(3)),
+            y: parseFloat(y.toFixed(3)),
+            isStart: false,
+            isStop: false,
+            hasCar: false,
+            hasBike: false,
+            hasBus: false,
+            hasTrain: false,
+            hasHospital: false,
+            hasCard: false
+          };
+          currentLevelNodes.push(node);
+        }
+
+        // Apply Spatial Collision Repulsion to ensure no overlapping nodes
+        for (let a = 0; a < currentLevelNodes.length; a++) {
+          for (let b = a + 1; b < currentLevelNodes.length; b++) {
+            const nA = currentLevelNodes[a];
+            const nB = currentLevelNodes[b];
+            const dx = nA.x - nB.x;
+            const dy = nA.y - nB.y;
+            const dist = Math.hypot(dx, dy);
+            if (dist < 0.12) {
+              const push = (0.12 - dist) / 2;
+              nA.x = Math.max(0.10, Math.min(0.90, nA.x + (dx > 0 ? push : -push)));
+              nB.x = Math.max(0.10, Math.min(0.90, nB.x + (dx > 0 ? -push : push)));
+            }
+          }
+        }
+
+        // ==========================================
+        // MANDATORY RULE ENFORCEMENT PER LEVEL:
+        // 1. At least 1 Ability Card node ('A')
+        // 2. At least 1 of each vehicle (Bike, Car, Bus, Train)
+        // ==========================================
+        const shuffledIndices = shuffle(currentLevelNodes.map((_, idx) => idx));
+
+        // Guaranteed Ability Card on at least 1 (often 2) nodes
+        currentLevelNodes[shuffledIndices[0]].hasCard = true;
+        if (currentLevelNodes.length >= 5 && Math.random() > 0.4) {
+          currentLevelNodes[shuffledIndices[1]].hasCard = true;
+        }
+
+        // Guaranteed Train Station (exactly 1 per level)
+        const trainNodeIdx = shuffledIndices[currentLevelNodes.length - 1];
+        currentLevelNodes[trainNodeIdx].hasTrain = true;
+        trainStationNodes.push(currentLevelNodes[trainNodeIdx]);
+
+        // Guaranteed Bike (at least 1, plus 45% chance on others)
+        currentLevelNodes[shuffledIndices[0]].hasBike = true;
+        currentLevelNodes.forEach((n, idx) => {
+          if (idx !== shuffledIndices[0] && Math.random() > 0.55) n.hasBike = true;
+        });
+
+        // Guaranteed Car (at least 1, plus 45% chance on others)
+        const carNodeIdx = shuffledIndices[1 % currentLevelNodes.length];
+        currentLevelNodes[carNodeIdx].hasCar = true;
+        currentLevelNodes.forEach((n, idx) => {
+          if (idx !== carNodeIdx && Math.random() > 0.55) n.hasCar = true;
+        });
+
+        // Guaranteed Bus Terminal (at least 1, plus 40% chance on others)
+        const busNodeIdx = shuffledIndices[2 % currentLevelNodes.length];
+        currentLevelNodes[busNodeIdx].hasBus = true;
+        currentLevelNodes.forEach((n, idx) => {
+          if (idx !== busNodeIdx && Math.random() > 0.60) n.hasBus = true;
+        });
+
+        // Hospital (Levels 2, 4, 5)
+        if (lvl === 2 || lvl === 4 || lvl === 5) {
+          const hospIdx = shuffledIndices[3 % currentLevelNodes.length];
+          currentLevelNodes[hospIdx].hasHospital = true;
+        }
+
+        levelNodesMap.set(lvl, currentLevelNodes);
+        nodes.push(...currentLevelNodes);
+      }
+
+      // 3. STOP NODE (Level N+1)
+      const stopPool = shuffle(DHAKA_LOCATION_POOLS.stop);
+      const stopLoc = stopPool[0];
+      const stopNode = {
+        id: 'STOP',
+        name: stopLoc.name,
+        area: stopLoc.area,
+        level: levelCount + 1,
+        x: 0.500,
+        y: 0.940,
+        isStart: false,
+        isStop: true,
+        hasCar: false,
+        hasBike: false,
+        hasBus: false,
+        hasTrain: false,
+        hasHospital: false,
+        hasCard: false
+      };
+      nodes.push(stopNode);
+
+      // ==========================================
+      // 4. EDGE TOPOLOGY & STRICT NO-SHORTCUT DAG
+      // ==========================================
+
+      // A. START -> Level 1 (Forward Connections)
+      const level1Nodes = levelNodesMap.get(1);
+      level1Nodes.forEach((n1, idx) => {
+        edges.push({
+          id: `E_ST_${n1.id}`,
+          from: 'START',
+          to: n1.id,
+          type: 'road',
+          color: colors[idx % colors.length]
+        });
+      });
+
+      // B. Level L -> Level L+1 (Strictly Layered Forward DAG - No skips allowed)
+      for (let lvl = 1; lvl < levelCount; lvl++) {
+        const fromNodes = levelNodesMap.get(lvl);
+        const toNodes = levelNodesMap.get(lvl + 1);
+
+        // Sort both by X coordinate
+        const sortedFrom = [...fromNodes].sort((a, b) => a.x - b.x);
+        const sortedTo = [...toNodes].sort((a, b) => a.x - b.x);
+
+        // Connect each fromNode to its 2 nearest toNodes
+        sortedFrom.forEach((fn) => {
+          const nearest = [...sortedTo]
+            .map((tn) => ({ node: tn, dist: Math.hypot(fn.x - tn.x, fn.y - tn.y) }))
+            .sort((a, b) => a.dist - b.dist)
+            .slice(0, 2);
+
+          nearest.forEach(({ node: tn }) => {
+            const edgeExists = edges.some((e) => (e.from === fn.id && e.to === tn.id) || (e.from === tn.id && e.to === fn.id));
+            if (!edgeExists) {
+              edges.push({
+                id: `E_FWD_${edgeCounter++}`,
+                from: fn.id,
+                to: tn.id,
+                type: 'road',
+                color: colors[edgeCounter % colors.length]
+              });
+            }
+          });
+        });
+
+        // Ensure every toNode has at least 1 incoming forward edge
+        sortedTo.forEach((tn) => {
+          const hasIncoming = edges.some((e) => e.to === tn.id && e.type === 'road');
+          if (!hasIncoming) {
+            const nearestFrom = [...sortedFrom]
+              .map((fn) => ({ node: fn, dist: Math.hypot(fn.x - tn.x, fn.y - tn.y) }))
+              .sort((a, b) => a.dist - b.dist)[0].node;
+
+            edges.push({
+              id: `E_FWD_${edgeCounter++}`,
+              from: nearestFrom.id,
+              to: tn.id,
+              type: 'road',
+              color: colors[edgeCounter % colors.length]
+            });
+          }
+        });
+
+        // C. Intra-Level Lateral Connections (L <-> L)
+        for (let i = 0; i < sortedFrom.length - 1; i++) {
+          if (Math.random() > 0.3) {
+            edges.push({
+              id: `E_LAT_${edgeCounter++}`,
+              from: sortedFrom[i].id,
+              to: sortedFrom[i + 1].id,
+              type: 'road',
+              color: colors[edgeCounter % colors.length]
+            });
+          }
+        }
+      }
+
+      // Lateral connections for final level (Level 5)
+      const finalLevelNodes = [...levelNodesMap.get(levelCount)].sort((a, b) => a.x - b.x);
+      for (let i = 0; i < finalLevelNodes.length - 1; i++) {
+        edges.push({
+          id: `E_LAT_${edgeCounter++}`,
+          from: finalLevelNodes[i].id,
+          to: finalLevelNodes[i + 1].id,
+          type: 'road',
+          color: colors[edgeCounter % colors.length]
+        });
+      }
+
+      // D. Final Level -> STOP (Every node in Level 5 connects to STOP)
+      finalLevelNodes.forEach((fn, idx) => {
+        edges.push({
+          id: `E_STOP_${edgeCounter++}`,
+          from: fn.id,
+          to: 'STOP',
+          type: 'road',
+          color: colors[idx % colors.length]
+        });
+      });
+
+      // E. Continuous Curved Railway Line (Train stations chained through all levels)
+      for (let r = 0; r < trainStationNodes.length - 1; r++) {
+        const fromStn = trainStationNodes[r];
+        const toStn = trainStationNodes[r + 1];
+        const curveDir = (r % 2 === 0 ? 1 : -1);
+        const curveMag = 45 + Math.floor(Math.random() * 25);
+        edges.push({
+          id: `RAIL_${fromStn.id}_${toStn.id}`,
+          from: fromStn.id,
+          to: toStn.id,
+          type: 'rail',
+          color: 'rail',
+          curveOffset: curveDir * curveMag
+        });
+      }
+
+      return { nodes, edges };
+    }
+  }
 
   const ABILITY_CARDS_TEMPLATE = [
     { id: 'c_nitro', title: 'Nitros Speed Boost', category: 'advantage', type: 'Play Once Any Time', description: 'Double your score points on your next travel move (+100% pts).', effectType: 'DOUBLE_POINTS' },
@@ -288,8 +519,13 @@
 
     initGraph() {
       this.nodesMap.clear();
-      BOARD_NODES.forEach((n) => this.nodesMap.set(n.id, { ...n }));
-      this.edges = [...BOARD_EDGES];
+      const { nodes, edges } = DynamicMapGenerator.generateMap(5);
+      this.generatedNodes = nodes;
+      this.generatedEdges = edges;
+      nodes.forEach((n) => this.nodesMap.set(n.id, { ...n }));
+      this.edges = [...edges];
+      this.blockedColors = new Set();
+      this.blockedEdges = new Set();
     }
 
     initDeck() {
@@ -316,14 +552,25 @@
       }
     }
 
-    initGame(playerConfigs) {
-      this.initGraph();
+    initGame(playerConfigs, customGraph = null, customPriority = null) {
+      if (customGraph && customGraph.nodes && customGraph.edges) {
+        this.nodesMap.clear();
+        this.generatedNodes = customGraph.nodes;
+        this.generatedEdges = customGraph.edges;
+        customGraph.nodes.forEach((n) => this.nodesMap.set(n.id, { ...n }));
+        this.edges = [...customGraph.edges];
+        this.blockedColors = new Set();
+        this.blockedEdges = new Set();
+      } else {
+        this.initGraph();
+      }
       this.initDeck();
       this.players = playerConfigs.map((cfg, idx) => ({
         id: `p_${idx + 1}`,
         name: cfg.name,
         color: cfg.color,
         isAi: cfg.isAi,
+        clientId: cfg.clientId || null,
         score: 0,
         money: 12, // Starting 12 Currency Units
         currentNodeId: 'START',
@@ -341,7 +588,7 @@
       }));
 
       this.round = 1;
-      this.priorityIndex = Math.floor(Math.random() * this.players.length);
+      this.priorityIndex = customPriority !== null ? customPriority : Math.floor(Math.random() * this.players.length);
       this.activePlayerIndex = this.priorityIndex;
       this.turnsTakenInRound = 0;
       this.trafficStatus = { red: 'medium', green: 'medium', blue: 'medium' };
@@ -550,7 +797,7 @@
       }
     }
 
-    keepCard(playerIndex, cardToKeepInstanceId, allDrawn) {
+    keepCard(playerIndex, cardToKeepInstanceId, allDrawn, isOpeningDraft = false) {
       const p = this.players[playerIndex];
       const kept = allDrawn.find((c) => c.instanceId === cardToKeepInstanceId);
       const discarded = allDrawn.filter((c) => c.instanceId !== cardToKeepInstanceId);
@@ -558,7 +805,11 @@
       if (kept) {
         p.hand.push(kept);
         // Kept private: Do not leak card title or power in the log
-        this.log(`🔒 ${p.name} added 1 private Ability Card to hand.`, 'card');
+        if (isOpeningDraft) {
+          this.log(`🔒 ${p.name} drafted 1 starting Ability Card into private hand.`, 'card');
+        } else {
+          this.log(`🔒 ${p.name} added 1 private Ability Card to hand.`, 'card');
+        }
       }
       discarded.forEach((c) => this.discardPile.push(c));
     }
@@ -681,24 +932,28 @@
       }
     }
 
-    startNextRound() {
+    startNextRound(overridePriority = null, overrideDiceRoll = null) {
       if (this.phase === 'GAME_OVER') return;
       this.round++;
       this.turnsTakenInRound = 0;
 
       // Rotate priority token
-      let nextPriority = this.priorityIndex;
-      let pAttempts = 0;
-      do {
-        nextPriority = (nextPriority + 1) % this.players.length;
-        pAttempts++;
-      } while (this.players[nextPriority].hasFinished && pAttempts < this.players.length);
+      if (overridePriority !== null) {
+        this.priorityIndex = overridePriority;
+      } else {
+        let nextPriority = this.priorityIndex;
+        let pAttempts = 0;
+        do {
+          nextPriority = (nextPriority + 1) % this.players.length;
+          pAttempts++;
+        } while (this.players[nextPriority].hasFinished && pAttempts < this.players.length);
+        this.priorityIndex = nextPriority;
+      }
 
-      this.priorityIndex = nextPriority;
       this.activePlayerIndex = this.priorityIndex;
 
       // Roll 6-sided dice for traffic
-      this.diceRoll = Math.floor(Math.random() * 6) + 1;
+      this.diceRoll = overrideDiceRoll !== null ? overrideDiceRoll : (Math.floor(Math.random() * 6) + 1);
       const row = TRAFFIC_STATUS_ROWS.find((r) => r.roll === this.diceRoll) || TRAFFIC_STATUS_ROWS[0];
       this.trafficStatus = {
         red: row.medium === 'red' ? 'medium' : (row.heavy === 'red' ? 'heavy' : 'light'),
@@ -719,6 +974,10 @@
       });
       this.blockedColors.clear();
       this.blockedEdges.clear();
+
+      if (this.onNextRoundCallback) {
+        this.onNextRoundCallback(this.round, this.priorityIndex, this.diceRoll);
+      }
     }
 
     checkGameCompletion() {
@@ -1346,9 +1605,499 @@
       this.canvas = document.getElementById('boardCanvas');
       this.renderer = new BoardRenderer(this.canvas, this.engine);
 
+      this.isOnlineGame = false;
+      this.isHost = false;
+      this.localClientId = (window.K2GMultiplayer && window.K2GMultiplayer.clientId) || ('p_' + Math.random().toString(36).substr(2, 6));
+      this.localPlayerIndex = 0;
+      this.gameInProgress = false;
+      this.selectedHostColor = PLAYER_COLORS[0];
+      this.selectedJoinColor = PLAYER_COLORS[1];
+
       this.initCallbacks();
       this.bindDOM();
-      this.showSetupModal();
+      this.initHomeScreen();
+      this.initMultiplayer();
+      this.showHomeScreen(true);
+    }
+
+    showHomeScreen(show) {
+      const homeEl = document.getElementById('homeScreen');
+      const turnBar = document.getElementById('turnOrderBar');
+      const appContainer = document.querySelector('.app-container');
+      const resumeBtn = document.getElementById('homeResumeGameBtn');
+
+      if (show) {
+        if (homeEl) homeEl.classList.remove('hidden');
+        if (turnBar) turnBar.style.display = 'none';
+        if (appContainer) appContainer.style.display = 'none';
+        if (resumeBtn) resumeBtn.style.display = this.gameInProgress ? 'inline-block' : 'none';
+      } else {
+        if (homeEl) homeEl.classList.add('hidden');
+        if (turnBar) turnBar.style.display = 'flex';
+        if (appContainer) appContainer.style.display = 'flex';
+        setTimeout(() => {
+          this.renderer.resize();
+          this.renderer.fitBoardToView();
+        }, 50);
+      }
+    }
+
+    initHomeScreen() {
+      // Home Screen Nav & Modal Triggers
+      const homeNavBtn = document.getElementById('homeNavBtn');
+      if (homeNavBtn) homeNavBtn.addEventListener('click', () => this.showHomeScreen(true));
+
+      const homeRulesBtn = document.getElementById('homeRulesBtn');
+      if (homeRulesBtn) homeRulesBtn.addEventListener('click', () => this.toggleModal('rulesModal', true));
+
+      const homeSpeedChartBtn = document.getElementById('homeSpeedChartBtn');
+      if (homeSpeedChartBtn) {
+        homeSpeedChartBtn.addEventListener('click', () => {
+          this.showHomeScreen(false);
+          const speedPanel = document.getElementById('speedChartPanel');
+          if (speedPanel) speedPanel.classList.remove('collapsed');
+        });
+      }
+
+      const homeGithubGuideBtn = document.getElementById('homeGithubGuideBtn');
+      if (homeGithubGuideBtn) homeGithubGuideBtn.addEventListener('click', () => this.toggleModal('githubPagesModal', true));
+
+      const closeGithubGuideBtn = document.getElementById('closeGithubGuideBtn');
+      if (closeGithubGuideBtn) closeGithubGuideBtn.addEventListener('click', () => this.toggleModal('githubPagesModal', false));
+
+      const resumeBtn = document.getElementById('homeResumeGameBtn');
+      if (resumeBtn) resumeBtn.addEventListener('click', () => this.showHomeScreen(false));
+
+      const startLocalBtn = document.getElementById('homeStartLocalBtn');
+      if (startLocalBtn) {
+        startLocalBtn.addEventListener('click', () => {
+          this.showHomeScreen(false);
+          this.showSetupModal();
+        });
+      }
+
+      // Online Host/Join Tabs
+      const tabHost = document.getElementById('tabHostRoom');
+      const tabJoin = document.getElementById('tabJoinRoom');
+      const paneHost = document.getElementById('paneHostRoom');
+      const paneJoin = document.getElementById('paneJoinRoom');
+
+      if (tabHost && tabJoin && paneHost && paneJoin) {
+        tabHost.addEventListener('click', () => {
+          tabHost.classList.add('active');
+          tabJoin.classList.remove('active');
+          paneHost.classList.add('active');
+          paneJoin.classList.remove('active');
+        });
+        tabJoin.addEventListener('click', () => {
+          tabJoin.classList.add('active');
+          tabHost.classList.remove('active');
+          paneJoin.classList.add('active');
+          paneHost.classList.remove('active');
+        });
+      }
+
+      // Color pickers setup
+      this.setupColorPicker('hostColorPicker', (col) => { this.selectedHostColor = col; }, 0);
+      this.setupColorPicker('joinColorPicker', (col) => { this.selectedJoinColor = col; }, 1);
+
+      // Create Room Button
+      const createRoomBtn = document.getElementById('hostCreateRoomBtn');
+      if (createRoomBtn) {
+        createRoomBtn.addEventListener('click', () => {
+          audio.ensureContext();
+          const hostName = (document.getElementById('hostPlayerNameInput')?.value || '').trim() || 'Host';
+          const maxPlayers = parseInt(document.getElementById('hostMaxPlayersSelect')?.value || '4', 10);
+          this.isOnlineGame = true;
+          this.isHost = true;
+          if (window.K2GMultiplayer) {
+            window.K2GMultiplayer.createRoom(hostName, this.selectedHostColor.hex, maxPlayers);
+          }
+          this.toggleModal('onlineLobbyModal', true);
+        });
+      }
+
+      // Join Room Button
+      const joinRoomBtn = document.getElementById('joinRoomSubmitBtn');
+      if (joinRoomBtn) {
+        joinRoomBtn.addEventListener('click', () => {
+          audio.ensureContext();
+          const pName = (document.getElementById('joinPlayerNameInput')?.value || '').trim() || 'Guest';
+          const code = (document.getElementById('joinGameIdInput')?.value || '').trim().toUpperCase();
+          if (!code) {
+            alert('Please enter a valid Game ID to join!');
+            return;
+          }
+          this.isOnlineGame = true;
+          this.isHost = false;
+          if (window.K2GMultiplayer) {
+            window.K2GMultiplayer.joinRoom(code, pName, this.selectedJoinColor.hex);
+          }
+          this.toggleModal('onlineLobbyModal', true);
+        });
+      }
+
+      // Refresh Lobby Button
+      const refreshBtn = document.getElementById('refreshLobbyBtn');
+      if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => {
+          if (window.K2GMultiplayer) {
+            window.K2GMultiplayer.publishLobbyPing();
+          }
+        });
+      }
+
+      // URL Query auto-detect (?room=K2G-XXXX)
+      const urlParams = new URLSearchParams(window.location.search);
+      const roomParam = urlParams.get('room') || urlParams.get('game');
+      if (roomParam) {
+        const joinInput = document.getElementById('joinGameIdInput');
+        if (joinInput) joinInput.value = roomParam.trim().toUpperCase();
+        if (tabJoin) tabJoin.click();
+      }
+
+      // Lobby Modal Controls
+      const copyIdBtn = document.getElementById('copyGameIdBtn');
+      if (copyIdBtn) {
+        copyIdBtn.addEventListener('click', () => {
+          const roomId = window.K2GMultiplayer ? window.K2GMultiplayer.currentRoomId : null;
+          if (!roomId) return;
+          const shareUrl = `${window.location.origin}${window.location.pathname}?room=${roomId}`;
+          const copyText = `Join my Which Way to Go! game: Game ID: ${roomId} | Link: ${shareUrl}`;
+          if (navigator.clipboard) {
+            navigator.clipboard.writeText(copyText).then(() => {
+              copyIdBtn.innerText = '✓ Copied Link & ID!';
+              setTimeout(() => { copyIdBtn.innerText = '📋 Copy Game ID & Link'; }, 2000);
+            });
+          } else {
+            prompt('Copy this room link to share with friends:', copyText);
+          }
+        });
+      }
+
+      const leaveLobbyBtn = document.getElementById('leaveLobbyBtn');
+      if (leaveLobbyBtn) leaveLobbyBtn.addEventListener('click', () => this.leaveOnlineLobby());
+      const lobbyBackBtn = document.getElementById('lobbyBackBtn');
+      if (lobbyBackBtn) lobbyBackBtn.addEventListener('click', () => this.leaveOnlineLobby());
+
+      const addBotBtn = document.getElementById('lobbyAddBotBtn');
+      if (addBotBtn) {
+        addBotBtn.addEventListener('click', () => {
+          if (!window.K2GMultiplayer) return;
+          const botCount = (window.K2GMultiplayer.roomState?.players?.length || 0) + 1;
+          const botColor = PLAYER_COLORS[botCount % PLAYER_COLORS.length].hex;
+          window.K2GMultiplayer.addAiBotToRoom(`Smart Bot ${botCount}`, botColor);
+        });
+      }
+
+      const startOnlineGameBtn = document.getElementById('lobbyStartGameBtn');
+      if (startOnlineGameBtn) {
+        startOnlineGameBtn.addEventListener('click', () => {
+          if (this.isHost) {
+            this.launchOnlineGameFromHost();
+          }
+        });
+      }
+
+      const chatInput = document.getElementById('lobbyChatInput');
+      const chatSendBtn = document.getElementById('lobbySendChatBtn');
+      if (chatInput && chatSendBtn) {
+        const doSend = () => {
+          const text = chatInput.value.trim();
+          if (text && window.K2GMultiplayer) {
+            window.K2GMultiplayer.sendChatMessage(text);
+            chatInput.value = '';
+          }
+        };
+        chatSendBtn.addEventListener('click', doSend);
+        chatInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') doSend();
+        });
+      }
+    }
+
+    setupColorPicker(containerId, onSelect, defaultIdx = 0) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      container.innerHTML = '';
+      PLAYER_COLORS.forEach((col, idx) => {
+        const dot = document.createElement('div');
+        dot.className = `color-option-dot ${idx === defaultIdx ? 'selected' : ''}`;
+        dot.style.backgroundColor = col.hex;
+        dot.title = col.name;
+        dot.addEventListener('click', () => {
+          container.querySelectorAll('.color-option-dot').forEach(d => d.classList.remove('selected'));
+          dot.classList.add('selected');
+          onSelect(col);
+        });
+        container.appendChild(dot);
+      });
+    }
+
+    leaveOnlineLobby() {
+      if (window.K2GMultiplayer) {
+        window.K2GMultiplayer.leaveRoom();
+      }
+      this.toggleModal('onlineLobbyModal', false);
+      this.isOnlineGame = false;
+      this.showHomeScreen(true);
+    }
+
+    initMultiplayer() {
+      if (!window.K2GMultiplayer) return;
+
+      window.K2GMultiplayer.onOpenRoomsChanged = (rooms) => this.renderOpenRoomsList(rooms);
+      window.K2GMultiplayer.onRoomStateChanged = (roomState) => this.renderLobbyState(roomState);
+      window.K2GMultiplayer.onChatMessageReceived = (chat) => this.appendLobbyChat(chat);
+      window.K2GMultiplayer.onConnectionStatusChanged = (status) => this.updateNetworkStatusPill(status);
+      window.K2GMultiplayer.onGameActionReceived = (actionType, actionData) => this.handleRemoteGameAction(actionType, actionData);
+    }
+
+    updateNetworkStatusPill(status) {
+      const pill = document.getElementById('networkStatusPill');
+      if (!pill) return;
+      if (status === 'online') {
+        pill.innerText = '🟢 WebSocket Online';
+        pill.style.borderColor = 'rgba(16, 185, 129, 0.5)';
+        pill.style.color = '#34d399';
+      } else if (status === 'connecting') {
+        pill.innerText = '🟡 Connecting...';
+        pill.style.borderColor = 'rgba(245, 158, 11, 0.5)';
+        pill.style.color = '#fbbf24';
+      } else if (status === 'local-only') {
+        pill.innerText = '🔵 Local Channel';
+        pill.style.borderColor = 'rgba(59, 130, 246, 0.5)';
+        pill.style.color = '#60a5fa';
+      } else {
+        pill.innerText = '🔴 Reconnecting...';
+        pill.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+        pill.style.color = '#f87171';
+      }
+    }
+
+    renderOpenRoomsList(rooms) {
+      const container = document.getElementById('openRoomsContainer');
+      if (!container) return;
+
+      if (!rooms || rooms.length === 0) {
+        container.innerHTML = `
+          <div class="lobby-empty-hint">
+            <span>📡 Scanning network for open rooms...</span>
+            <p>No active public rooms waiting. Host a room to start!</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = '';
+      rooms.forEach((r) => {
+        const card = document.createElement('div');
+        card.className = 'open-room-card';
+        card.innerHTML = `
+          <div class="room-card-info">
+            <div class="room-card-header-row">
+              <span class="room-id-tag">${r.roomId}</span>
+              <span class="room-status-badge">${r.status === 'PLAYING' ? 'In Race' : 'Waiting in Lobby'}</span>
+            </div>
+            <div class="room-card-host">
+              Host: <strong>${r.hostName}</strong> • Players: <strong>${r.playerCount}/${r.maxPlayers}</strong>
+            </div>
+          </div>
+          <button class="btn-join-room-action" ${r.playerCount >= r.maxPlayers ? 'disabled' : ''}>
+            ${r.playerCount >= r.maxPlayers ? 'Full' : 'Join Room ➔'}
+          </button>
+        `;
+
+        if (r.playerCount < r.maxPlayers) {
+          card.querySelector('.btn-join-room-action').addEventListener('click', () => {
+            const joinInput = document.getElementById('joinGameIdInput');
+            if (joinInput) joinInput.value = r.roomId;
+            const tabJoin = document.getElementById('tabJoinRoom');
+            if (tabJoin) tabJoin.click();
+            const joinBtn = document.getElementById('joinRoomSubmitBtn');
+            if (joinBtn) joinBtn.click();
+          });
+        }
+
+        container.appendChild(card);
+      });
+    }
+
+    renderLobbyState(roomState) {
+      if (!roomState) return;
+
+      const gameIdDisplay = document.getElementById('lobbyGameIdDisplay');
+      if (gameIdDisplay) gameIdDisplay.innerText = roomState.roomId;
+
+      const countEl = document.getElementById('lobbyPlayerCountDisplay');
+      if (countEl) countEl.innerText = roomState.players.length;
+
+      const maxEl = document.getElementById('lobbyMaxPlayersDisplay');
+      if (maxEl) maxEl.innerText = roomState.maxPlayers;
+
+      const hostControls = document.getElementById('hostLobbyControls');
+      if (hostControls) {
+        hostControls.style.display = this.isHost ? 'flex' : 'none';
+      }
+
+      const startBtn = document.getElementById('lobbyStartGameBtn');
+      if (startBtn) {
+        if (this.isHost) {
+          if (roomState.players.length >= 2) {
+            startBtn.disabled = false;
+            startBtn.innerText = '🏁 Start Online Game!';
+          } else {
+            startBtn.disabled = true;
+            startBtn.innerText = '⏳ Waiting for at least 2 players...';
+          }
+        } else {
+          startBtn.disabled = true;
+          startBtn.innerText = '⏳ Waiting for Host to Start Game...';
+        }
+      }
+
+      // Render player slots
+      const slotsContainer = document.getElementById('lobbySlotsContainer');
+      if (slotsContainer) {
+        slotsContainer.innerHTML = '';
+        for (let i = 0; i < roomState.maxPlayers; i++) {
+          const slot = document.createElement('div');
+          const p = roomState.players[i];
+          if (p) {
+            slot.className = 'lobby-player-slot';
+            slot.innerHTML = `
+              <div class="slot-dot" style="background-color: ${p.color}"></div>
+              <div class="slot-info">
+                <span class="slot-name">${p.name} ${window.K2GMultiplayer && p.clientId === window.K2GMultiplayer.clientId ? '(You)' : ''}</span>
+                <span class="slot-badge ${p.isHost ? 'host-badge' : ''}">${p.isHost ? '👑 Host' : (p.isAi ? '🤖 Smart Bot' : '👤 Player')}</span>
+              </div>
+              ${this.isHost && window.K2GMultiplayer && p.clientId !== window.K2GMultiplayer.clientId ? `<button class="slot-remove-btn" title="Remove">✕</button>` : ''}
+            `;
+            if (this.isHost && window.K2GMultiplayer && p.clientId !== window.K2GMultiplayer.clientId) {
+              const remBtn = slot.querySelector('.slot-remove-btn');
+              if (remBtn) {
+                remBtn.addEventListener('click', () => {
+                  window.K2GMultiplayer.removePlayerFromRoom(p.clientId);
+                });
+              }
+            }
+          } else {
+            slot.className = 'lobby-player-slot empty-slot';
+            slot.innerHTML = `
+              <div class="slot-dot" style="background-color: #64748b"></div>
+              <div class="slot-info">
+                <span class="slot-name" style="color: #64748b">Empty Slot #${i + 1}</span>
+                <span class="slot-badge">Waiting for player...</span>
+              </div>
+            `;
+          }
+          slotsContainer.appendChild(slot);
+        }
+      }
+    }
+
+    appendLobbyChat(chat) {
+      const box = document.getElementById('lobbyChatBox');
+      if (!box) return;
+      const row = document.createElement('div');
+      row.className = 'chat-msg-row';
+      row.innerHTML = `
+        <span class="chat-sender" style="color: ${chat.senderColor || '#38bdf8'}">${chat.senderName}:</span>
+        <span class="chat-text">${chat.text}</span>
+      `;
+      box.appendChild(row);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    launchOnlineGameFromHost() {
+      if (!window.K2GMultiplayer) return;
+      const roomState = window.K2GMultiplayer.roomState;
+      if (!roomState || roomState.players.length < 2) return;
+
+      const { nodes, edges } = DynamicMapGenerator.generateMap(5);
+      const configs = roomState.players.map((p, idx) => ({
+        name: p.name,
+        color: PLAYER_COLORS.find(c => c.hex.toLowerCase() === p.color.toLowerCase()) || PLAYER_COLORS[idx % PLAYER_COLORS.length],
+        isAi: p.isAi,
+        clientId: p.clientId
+      }));
+
+      const priorityIndex = Math.floor(Math.random() * configs.length);
+
+      // Broadcast start to room
+      window.K2GMultiplayer.sendGameAction('START_GAME', {
+        players: configs,
+        nodes: nodes,
+        edges: edges,
+        priorityIndex: priorityIndex
+      });
+
+      roomState.status = 'PLAYING';
+      window.K2GMultiplayer.broadcastRoomSync();
+      window.K2GMultiplayer.broadcastRoomHeartbeat();
+
+      this.startOnlineGameSession(configs, { nodes, edges }, priorityIndex);
+    }
+
+    startOnlineGameSession(configs, graphData, priorityIndex) {
+      this.isOnlineGame = true;
+      this.gameInProgress = true;
+      this.localClientId = window.K2GMultiplayer ? window.K2GMultiplayer.clientId : null;
+      const myIdx = configs.findIndex(p => p.clientId === this.localClientId);
+      this.localPlayerIndex = myIdx !== -1 ? myIdx : 0;
+
+      this.toggleModal('onlineLobbyModal', false);
+      this.showHomeScreen(false);
+
+      this.engine.initGame(configs, graphData, priorityIndex);
+      this.renderer.fitBoardToView();
+      this.updateHUD();
+
+      this.runOpeningCardDraft(() => {
+        this.updateHUD();
+        this.checkAITurn();
+      });
+    }
+
+    handleRemoteGameAction(actionType, actionData) {
+      if (!actionData) return;
+
+      switch (actionType) {
+        case 'START_GAME': {
+          this.isHost = false;
+          this.startOnlineGameSession(actionData.players, { nodes: actionData.nodes, edges: actionData.edges }, actionData.priorityIndex);
+          break;
+        }
+
+        case 'EXECUTE_MOVE': {
+          if (actionData.move) {
+            this.executeMove(actionData.move, false);
+          }
+          break;
+        }
+
+        case 'PLAY_CARD': {
+          this.engine.playCardWithSelection(actionData.playerIndex, actionData.cardInstanceId, actionData.param);
+          this.updateHUD();
+          break;
+        }
+
+        case 'DRAFT_CARD': {
+          const p = this.engine.players[actionData.playerIndex];
+          if (p) {
+            this.engine.keepCard(actionData.playerIndex, actionData.cardId, p.hand.concat(this.engine.deck), true);
+            this.updateHUD();
+          }
+          break;
+        }
+
+        case 'NEXT_ROUND': {
+          this.engine.startNextRound(actionData.priorityIndex, actionData.diceRoll);
+          this.updateHUD();
+          this.checkAITurn();
+          break;
+        }
+      }
     }
 
     initCallbacks() {
@@ -1368,6 +2117,24 @@
       document.getElementById('newGameNavBtn').addEventListener('click', () => this.showSetupModal());
       document.getElementById('rulesNavBtn').addEventListener('click', () => this.toggleModal('rulesModal', true));
       document.getElementById('closeRulesBtn').addEventListener('click', () => this.toggleModal('rulesModal', false));
+
+      // Vehicle Choice Cancel & Close Handlers
+      const closeVehBtn = document.getElementById('closeVehicleChoiceBtn');
+      if (closeVehBtn) {
+        closeVehBtn.addEventListener('click', () => this.toggleModal('vehicleChoiceModal', false));
+      }
+      const cancelVehBtn = document.getElementById('cancelVehicleChoiceBtn');
+      if (cancelVehBtn) {
+        cancelVehBtn.addEventListener('click', () => this.toggleModal('vehicleChoiceModal', false));
+      }
+      const vehicleModal = document.getElementById('vehicleChoiceModal');
+      if (vehicleModal) {
+        vehicleModal.addEventListener('click', (e) => {
+          if (e.target === vehicleModal) {
+            this.toggleModal('vehicleChoiceModal', false);
+          }
+        });
+      }
 
       const closeCardActionBtn = document.getElementById('closeCardActionBtn');
       if (closeCardActionBtn) {
@@ -1393,18 +2160,42 @@
         findBtn.addEventListener('click', () => this.renderer.centerOnActivePlayer());
       }
 
-      // Legend Toggle Button
+      // Legend Toggle Button (Closed by default)
       const legendPanel = document.getElementById('mapLegendPanel');
       const legendToggleBtn = document.getElementById('toggleLegendBtn');
       if (legendToggleBtn && legendPanel) {
         legendToggleBtn.addEventListener('click', () => {
           legendPanel.classList.toggle('collapsed');
+          // Close speed chart if opening legend
+          if (!legendPanel.classList.contains('collapsed')) {
+            const speedPanel = document.getElementById('speedChartPanel');
+            if (speedPanel) speedPanel.classList.add('collapsed');
+          }
         });
       }
       const closeLegendBtn = document.getElementById('closeLegendBtn');
       if (closeLegendBtn && legendPanel) {
         closeLegendBtn.addEventListener('click', () => {
           legendPanel.classList.add('collapsed');
+        });
+      }
+
+      // Speed & Cost Chart Toggle Button
+      const speedPanel = document.getElementById('speedChartPanel');
+      const speedToggleBtn = document.getElementById('toggleSpeedChartBtn');
+      if (speedToggleBtn && speedPanel) {
+        speedToggleBtn.addEventListener('click', () => {
+          speedPanel.classList.toggle('collapsed');
+          // Close legend if opening speed chart
+          if (!speedPanel.classList.contains('collapsed')) {
+            if (legendPanel) legendPanel.classList.add('collapsed');
+          }
+        });
+      }
+      const closeSpeedBtn = document.getElementById('closeSpeedChartBtn');
+      if (closeSpeedBtn && speedPanel) {
+        closeSpeedBtn.addEventListener('click', () => {
+          speedPanel.classList.add('collapsed');
         });
       }
     }
@@ -1436,6 +2227,10 @@
 
     startNewGame() {
       audio.ensureContext();
+      this.isOnlineGame = false;
+      this.gameInProgress = true;
+      this.showHomeScreen(false);
+
       const rows = document.querySelectorAll('.player-config-row');
       const configs = [];
       rows.forEach((row, idx) => {
@@ -1446,17 +2241,107 @@
       });
 
       this.toggleModal('setupModal', false);
+      
+      // Ensure legend and speed chart panels are collapsed by default when starting a game
+      const legendPanel = document.getElementById('mapLegendPanel');
+      if (legendPanel) legendPanel.classList.add('collapsed');
+      const speedPanel = document.getElementById('speedChartPanel');
+      if (speedPanel) speedPanel.classList.add('collapsed');
+
       this.engine.initGame(configs);
       this.renderer.fitBoardToView();
       this.updateHUD();
-      this.checkAITurn();
+
+      // Run Opening Ability Card Draft (Each user picks 1 of 2 random ability cards before traveling)
+      this.runOpeningCardDraft(() => {
+        this.updateHUD();
+        this.checkAITurn();
+      });
+    }
+
+    runOpeningCardDraft(onComplete) {
+      let pIdx = 0;
+
+      const draftForNextPlayer = () => {
+        if (pIdx >= this.engine.players.length) {
+          this.engine.log(`✨ Opening card draft complete! All players hold 1 starting ability card. Round 1 begins!`, 'system');
+          this.updateHUD();
+          if (onComplete) onComplete();
+          return;
+        }
+
+        const currentIndex = pIdx;
+        const player = this.engine.players[currentIndex];
+        pIdx++;
+
+        // Draw 2 random ability cards from the deck
+        if (this.engine.deck.length < 2) {
+          this.engine.deck = this.engine.deck.concat(this.engine.discardPile);
+          this.engine.discardPile = [];
+          this.engine.shuffleDeck();
+        }
+        const cardsDrawn = [this.engine.deck.pop(), this.engine.deck.pop()].filter(Boolean);
+
+        if (player.isAi) {
+          const keptId = this.ai.chooseCardToKeep(currentIndex, cardsDrawn);
+          this.engine.keepCard(currentIndex, keptId, cardsDrawn, true);
+          draftForNextPlayer();
+        } else {
+          this.showCardDraw(currentIndex, cardsDrawn, true, () => {
+            draftForNextPlayer();
+          });
+        }
+      };
+
+      this.engine.log(`🎴 OPENING ABILITY CARD DRAFT: Each player picks 1 card from 2 random draws!`, 'card');
+      draftForNextPlayer();
     }
 
     updateHUD() {
       const active = this.engine.players[this.engine.activePlayerIndex];
       if (!active) return;
 
-      document.getElementById('roundNumber').innerText = `Round ${this.engine.round}`;
+      // 1. Update Round & Turn Order Sequence (e.g., Round 1: P1 ➔ P2 ➔ P3 with active indicator)
+      document.getElementById('roundNumber').innerText = `Round ${this.engine.round}:`;
+      const flowContainer = document.getElementById('turnOrderFlow');
+      if (flowContainer) {
+        flowContainer.innerHTML = '';
+        const N = this.engine.players.length;
+        for (let i = 0; i < N; i++) {
+          const pIdx = (this.engine.priorityIndex + i) % N;
+          const player = this.engine.players[pIdx];
+          const isActive = pIdx === this.engine.activePlayerIndex;
+          const isCompleted = i < this.engine.turnsTakenInRound && !isActive;
+
+          const pill = document.createElement('div');
+          let stateClass = isActive ? 'active' : (isCompleted ? 'completed' : (player.hasFinished ? 'finished' : 'upcoming'));
+          pill.className = `turn-pill ${stateClass}`;
+
+          let shortName = player.name;
+          if (shortName.length > 9) shortName = shortName.slice(0, 8) + '…';
+
+          let statusIcon = '';
+          if (player.hasFinished) statusIcon = '🏁 ';
+          else if (isActive) statusIcon = '▶ ';
+          else if (isCompleted) statusIcon = '✓ ';
+          else if (i === 0) statusIcon = '⭐ ';
+
+          pill.innerHTML = `
+            <span class="turn-pill-dot" style="background-color: ${player.color.hex}"></span>
+            <span>${statusIcon}${shortName}${player.isAi ? ' 🤖' : ''}</span>
+          `;
+          pill.title = `${player.name} (${player.score} pts) - ${isActive ? 'Current Player' : (isCompleted ? 'Turn Completed' : 'Upcoming')}`;
+          flowContainer.appendChild(pill);
+
+          if (i < N - 1) {
+            const arrow = document.createElement('span');
+            arrow.className = 'turn-arrow';
+            arrow.innerText = '➔';
+            flowContainer.appendChild(arrow);
+          }
+        }
+      }
+
       const badge = document.getElementById('phaseBadge');
 
       if (this.engine.phase === 'GAME_OVER') {
@@ -1468,8 +2353,14 @@
         if (active.lightTrafficBonus) buffTags.push('🟢 Light Traffic');
         const buffStr = buffTags.length > 0 ? ` [${buffTags.join(', ')}]` : '';
 
-        badge.innerText = `🚗 ${active.name}'s Turn${buffStr}`;
-        badge.className = 'phase-tag travel-phase';
+        const isMyTurn = !this.isOnlineGame || (this.engine.activePlayerIndex === this.localPlayerIndex);
+        if (this.isOnlineGame) {
+          badge.innerText = isMyTurn ? `🚗 YOUR TURN!${buffStr}` : `⏳ ${active.name}'s Turn...`;
+          badge.className = isMyTurn ? 'phase-tag travel-phase' : 'phase-tag ability-phase';
+        } else {
+          badge.innerText = `🚗 ${active.name}'s Turn${buffStr}`;
+          badge.className = 'phase-tag travel-phase';
+        }
       }
 
       document.getElementById('activePlayerName').innerText = active.name + (active.isAi ? ' 🤖' : '');
@@ -1567,7 +2458,7 @@
         }
       }
 
-      // Traffic Rows
+      // Traffic Rows (Matrix with column headers, clean color swatches)
       document.getElementById('trafficDiceDisplay').innerText = this.engine.diceRoll ? `🎲 Roll ${this.engine.diceRoll}` : '⚪ Round 1 (All Med)';
       const tRows = document.getElementById('trafficCardRows');
       tRows.innerHTML = '';
@@ -1577,9 +2468,9 @@
         div.className = `traffic-row ${isCur ? 'active-traffic-row' : ''}`;
         div.innerHTML = `
           <span class="row-num">${r.roll}</span>
-          <span class="color-pill ${r.heavy}">Heavy: ${r.heavy}</span>
-          <span class="color-pill ${r.medium}">Med: ${r.medium}</span>
-          <span class="color-pill ${r.light}">Light: ${r.light}</span>
+          <div class="traffic-box swatch-${r.heavy}" title="Heavy: ${r.heavy.toUpperCase()}"></div>
+          <div class="traffic-box swatch-${r.medium}" title="Medium: ${r.medium.toUpperCase()}"></div>
+          <div class="traffic-box swatch-${r.light}" title="Light: ${r.light.toUpperCase()}"></div>
         `;
         tRows.appendChild(div);
       });
@@ -1648,6 +2539,18 @@
       }, 4500);
     }
 
+    activateCard(cardInstanceId, param = null) {
+      if (this.isOnlineGame && window.K2GMultiplayer) {
+        window.K2GMultiplayer.sendGameAction('PLAY_CARD', {
+          playerIndex: this.engine.activePlayerIndex,
+          cardInstanceId: cardInstanceId,
+          param: param
+        });
+      }
+      this.engine.playCardWithSelection(this.engine.activePlayerIndex, cardInstanceId, param);
+      this.updateHUD();
+    }
+
     // PROMPT CARD ACTION SELECTION MODAL
     promptCardPlayOptions(card) {
       const active = this.engine.players[this.engine.activePlayerIndex];
@@ -1678,8 +2581,7 @@
             `;
             btn.addEventListener('click', () => {
               this.toggleModal('cardActionModal', false);
-              this.engine.playCardWithSelection(this.engine.activePlayerIndex, card.instanceId, col.id);
-              this.updateHUD();
+              this.activateCard(card.instanceId, col.id);
             });
             container.appendChild(btn);
           });
@@ -1703,8 +2605,7 @@
             `;
             btn.addEventListener('click', () => {
               this.toggleModal('cardActionModal', false);
-              this.engine.playCardWithSelection(this.engine.activePlayerIndex, card.instanceId, opt.id);
-              this.updateHUD();
+              this.activateCard(card.instanceId, opt.id);
             });
             container.appendChild(btn);
           });
@@ -1729,8 +2630,7 @@
               `;
               btn.addEventListener('click', () => {
                 this.toggleModal('cardActionModal', false);
-                this.engine.playCardWithSelection(this.engine.activePlayerIndex, card.instanceId, oppIdx);
-                this.updateHUD();
+                this.activateCard(card.instanceId, oppIdx);
               });
               container.appendChild(btn);
             });
@@ -1749,8 +2649,7 @@
           btn.innerText = `CONFIRM & ACTIVATE: ${card.title.toUpperCase()} ⚡`;
           btn.addEventListener('click', () => {
             this.toggleModal('cardActionModal', false);
-            this.engine.playCardWithSelection(this.engine.activePlayerIndex, card.instanceId);
-            this.updateHUD();
+            this.activateCard(card.instanceId);
           });
           container.appendChild(btn);
           break;
@@ -1764,6 +2663,15 @@
       if (this.engine.phase === 'GAME_OVER') return;
       const active = this.engine.players[this.engine.activePlayerIndex];
       if (!active || active.isAi) return;
+
+      if (this.isOnlineGame && this.engine.activePlayerIndex !== this.localPlayerIndex) {
+        this.appendLog({
+          timestamp: new Date().toLocaleTimeString(),
+          text: `⏳ Please wait: It is ${active.name}'s turn to move!`,
+          type: 'alert'
+        });
+        return;
+      }
 
       // Check if player holds mandatory "Play Right Away" / "Play At Once" cards
       const mandatoryCards = active.hand.filter((c) => c.type === 'Play Right Away' || c.type === 'Play At Once');
@@ -1824,29 +2732,58 @@
       this.toggleModal('vehicleChoiceModal', true);
     }
 
-    executeMove(move) {
+    executeMove(move, isAiMove = false, onDone = null) {
+      if (this.isOnlineGame && !isAiMove && this.engine.activePlayerIndex === this.localPlayerIndex) {
+        if (window.K2GMultiplayer) {
+          window.K2GMultiplayer.sendGameAction('EXECUTE_MOVE', {
+            playerIndex: this.engine.activePlayerIndex,
+            move: move
+          });
+        }
+      }
+
       audio.playMove(move.vehicleId);
       const success = this.engine.executePlayerMove(this.engine.activePlayerIndex, move);
       if (!success) return;
 
       this.updateHUD();
       if (this.engine.phase !== 'GAME_OVER') {
-        this.engine.advanceTurn();
-        this.updateHUD();
-        this.checkAITurn();
+        const advanceDelay = isAiMove ? 800 : 0;
+        setTimeout(() => {
+          if (this.engine.phase !== 'GAME_OVER') {
+            this.engine.advanceTurn();
+            this.updateHUD();
+            this.checkAITurn();
+          }
+          if (onDone) onDone();
+        }, advanceDelay);
       }
     }
 
-    showCardDraw(playerIndex, cards) {
+    showCardDraw(playerIndex, cards, isOpeningDraft = false, onDone = null) {
       const p = this.engine.players[playerIndex];
       if (p.isAi) {
         const keptId = this.ai.chooseCardToKeep(playerIndex, cards);
-        this.engine.keepCard(playerIndex, keptId, cards);
+        this.engine.keepCard(playerIndex, keptId, cards, isOpeningDraft);
         this.updateHUD();
+        if (onDone) onDone();
         return;
       }
 
-      document.getElementById('cardDrawPlayerName').innerText = p.name;
+      const titleEl = document.getElementById('cardDrawModalTitle');
+      const descEl = document.getElementById('cardDrawModalDesc');
+      const nameEl = document.getElementById('cardDrawPlayerName');
+
+      if (nameEl) nameEl.innerText = p.name;
+      if (titleEl) {
+        titleEl.innerText = isOpeningDraft ? '🎁 Opening Ability Card Draft (Pick 1 of 2)' : '🔒 Secret Ability Card Draw';
+      }
+      if (descEl) {
+        descEl.innerHTML = isOpeningDraft
+          ? `<strong style="color: ${p.color.hex}; font-size: 14px;">${p.name}</strong>, choose <strong>1 starting Ability Card</strong> to keep in your secret hand before Round 1 begins:`
+          : `<strong style="color: ${p.color.hex}; font-size: 14px;">${p.name}</strong> landed on an Ability Card node. Pick one card to <strong>KEEP secretly in your hand</strong>; the other will be discarded:`;
+      }
+
       const c = document.getElementById('drawCardsContainer');
       c.innerHTML = '';
 
@@ -1861,9 +2798,19 @@
           <button class="keep-card-btn">KEEP THIS CARD 🎴</button>
         `;
         div.querySelector('.keep-card-btn').addEventListener('click', () => {
-          this.engine.keepCard(playerIndex, card.instanceId, cards);
+          this.engine.keepCard(playerIndex, card.instanceId, cards, isOpeningDraft);
+          if (this.isOnlineGame && window.K2GMultiplayer) {
+            window.K2GMultiplayer.sendGameAction('DRAFT_CARD', {
+              playerIndex: playerIndex,
+              cardId: card.instanceId,
+              isOpeningDraft: isOpeningDraft
+            });
+          }
           this.toggleModal('cardDrawModal', false);
           this.updateHUD();
+          if (onDone) {
+            onDone();
+          }
         });
         c.appendChild(div);
       });
@@ -1891,24 +2838,61 @@
 
     checkAITurn() {
       if (this.engine.phase === 'GAME_OVER') return;
+      if (this.isOnlineGame && !this.isHost) return;
       const active = this.engine.players[this.engine.activePlayerIndex];
       if (!active || !active.isAi || active.hasFinished) return;
 
+      // 1. Bot Turn Start: Center camera on active bot & show thinking state
+      const badge = document.getElementById('phaseBadge');
+      if (badge) {
+        badge.innerText = `🤖 ${active.name} is planning turn...`;
+        badge.className = 'phase-tag ability-phase';
+      }
+      this.renderer.centerOnNode(active.currentNodeId, this.engine.activePlayerIndex);
+      this.renderer.highlightedMoves = this.engine.getValidMovesForPlayer(this.engine.activePlayerIndex);
+      this.renderer.render();
+
+      // Delay 1: Bot "thinks" and evaluates card play (950ms)
       setTimeout(() => {
-        // 1. AI plays any beneficial ability cards first
-        this.ai.chooseAbilityAction(this.engine.activePlayerIndex);
+        if (this.engine.phase === 'GAME_OVER') return;
+
+        // Check if bot wants to play an ability card
+        const playedCard = this.ai.chooseAbilityAction(this.engine.activePlayerIndex);
         this.updateHUD();
 
-        // 2. AI chooses its travel move and executes it
-        const move = this.ai.chooseTravelMove(this.engine.activePlayerIndex);
-        if (move) {
-          this.executeMove(move);
-        } else {
-          this.engine.advanceTurn();
-          this.updateHUD();
-          this.checkAITurn();
-        }
-      }, 750);
+        // If a card was played, give the human time to see the reveal banner and log (1300ms)
+        const postCardDelay = playedCard ? 1300 : 400;
+
+        setTimeout(() => {
+          if (this.engine.phase === 'GAME_OVER') return;
+
+          // 2. Bot selects travel move
+          const move = this.ai.chooseTravelMove(this.engine.activePlayerIndex);
+          if (move) {
+            // Highlight target destination node and update status
+            if (badge) {
+              badge.innerText = `🚗 ${active.name} travelling to ${move.targetNode.name}...`;
+              badge.className = 'phase-tag travel-phase';
+            }
+            this.renderer.highlightedMoves = [move];
+            this.renderer.render();
+
+            // Delay 2: Pause to let human player see destination highlight (800ms)
+            setTimeout(() => {
+              if (this.engine.phase === 'GAME_OVER') return;
+              this.executeMove(move, true);
+            }, 800);
+          } else {
+            // No valid move, advance turn
+            setTimeout(() => {
+              if (this.engine.phase === 'GAME_OVER') return;
+              this.engine.advanceTurn();
+              this.updateHUD();
+              this.checkAITurn();
+            }, 600);
+          }
+        }, postCardDelay);
+      }, 950);
     }
 
     handleNodeHover(node) {

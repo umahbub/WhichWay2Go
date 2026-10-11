@@ -19,11 +19,12 @@
 - `css/style.css`: Modern UI stylesheets and animations.
 - `js/`: Modular JavaScript codebase:
   - `game_data.js`: Board graph definition, traffic status table, speed charts, and ability card decks.
+  - `multiplayer.js`: Zero-backend real-time WebSockets & BroadcastChannel room manager.
   - `audio.js`: Procedural Web Audio API sound effects.
   - `game_engine.js`: Turn/Phase state machine, movement validation, scoring, cards, and endgame calculations.
   - `ai_player.js`: Heuristic AI opponent bot for solo & mixed play.
   - `board_renderer.js`: Canvas/SVG renderer with zoom, pan, token animations, and visual overlays.
-  - `app.js`: Main UI event dispatcher and HUD controller.
+  - `game.js`: Integrated standalone game application controller and HUD dispatcher.
 
 ---
 
@@ -35,6 +36,7 @@
 - Starting Position: All tokens at **START**.
 - Round 1 Traffic: All roads are **MEDIUM TRAFFIC**.
 - Priority Token randomly assigned to Player 1.
+- **Opening Ability Card Draft**: At the very start of the game, each player draws 2 random Ability Cards from the deck and chooses 1 to keep secretly in hand before traveling begins, providing strategic influence from turn 1.
 
 ### B. Rounds & Turn Phases
 1. **Ability Round**:
@@ -71,7 +73,30 @@
 
 ---
 
-## 4. Development Guidelines for Antigravity Agents
+## 4. Online Multiplayer & GitHub Pages Deployment
+
+### A. Zero-Backend Serverless Multiplayer Architecture
+- Uses public WebSocket MQTT brokers (`wss://broker.hivemq.com:8884/mqtt` and `wss://broker.emqx.io:8084/mqtt`) combined with browser `BroadcastChannel` for local multi-tab fallback.
+- **Room Discovery Topic**: `k2g/v1/lobby/discovery` sends heartbeats every 3s to populate the Open Rooms Lobby.
+- **Room Session Topic**: `k2g/v1/room/{roomId}` syncs player joins, host start events, map data, travel moves, card plays, and in-game chat in real time.
+- Shareable Room Links: `https://<domain>/?room=K2G-XXXX` automatically connects remote friends to the room.
+
+### B. Publishing via GitHub Pages
+1. Push the repository to GitHub:
+   ```bash
+   git add .
+   git commit -m "Publish Which Way to Go online"
+   git push origin main
+   ```
+2. In the GitHub repository, navigate to **Settings** ➔ **Pages**.
+3. Under **Build and deployment** ➔ **Source**, select **Deploy from a branch**.
+4. Select branch `main` and folder `/ (root)`. Click **Save**.
+5. Within 1–2 minutes, the live game is accessible worldwide at:
+   `https://umahbub.github.io/WhichWay2Go/`
+
+---
+
+## 5. Development Guidelines for Antigravity Agents
 1. **Zero External Dependencies**: All game features run client-side using standard HTML5 Canvas, Web Audio API, and vanilla modern ES6+ JavaScript.
 2. **Documentation Integrity**: Maintain clear inline comments and modular design.
 3. **Asset Preservation**: Do not alter original assets in `board_game_assets/`.

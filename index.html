@@ -18,24 +18,241 @@
       </div>
     </div>
 
-    <!-- Central Turn & Phase Tracker -->
-    <div class="round-tracker">
-      <span class="round-title" id="roundNumber">Round 1</span>
+    <!-- Active Turn / Phase Status Badge -->
+    <div class="header-status">
       <span class="phase-tag travel-phase" id="phaseBadge">🚗 TRAVEL ROUND</span>
     </div>
 
     <!-- Navigation & Utility Buttons -->
     <div class="header-actions">
+      <button class="btn-nav" id="homeNavBtn">🏠 Home</button>
       <button class="btn-nav" id="soundToggleBtn">🔊 Sound: On</button>
       <button class="btn-nav" id="rulesNavBtn">📖 Rules</button>
       <button class="btn-nav btn-primary" id="newGameNavBtn">🎮 New Game</button>
     </div>
   </header>
 
-  <!-- Main Game Workspace -->
+  <!-- ========================================== -->
+  <!-- HOME SCREEN & MULTIPLAYER LOBBY (LANDING)  -->
+  <!-- ========================================== -->
+  <div class="home-screen" id="homeScreen">
+    <div class="home-container">
+      
+      <!-- Hero Header Section -->
+      <div class="home-hero">
+        <div class="hero-badge-row">
+          <span class="hero-traffic-pill">🚦 ঢাকা ট্রানজিট রেস</span>
+          <span class="hero-version-pill">v2.5 Online Edition</span>
+          <span class="network-status-pill" id="networkStatusPill">🟢 WebSocket Online</span>
+        </div>
+        <h1 class="hero-title">Which Way to Go!</h1>
+        <p class="hero-subtitle">
+          The Strategic Transit Board Game across Dhaka by <strong>Upal Mahbub</strong>
+        </p>
+        <p class="hero-desc">
+          Race across Dhaka from <strong>START</strong> to <strong>STOP</strong> using Rickshaw/Bike, Car, Bus, and Express Train. Balance speed, currency, dynamic traffic rolls, and strategic Ability Cards.
+        </p>
+
+        <!-- Quick Action Nav Pills -->
+        <div class="home-quick-actions">
+          <button class="home-quick-btn" id="homeRulesBtn">📖 Rule Book & Guide</button>
+          <button class="home-quick-btn" id="homeSpeedChartBtn">⚡ Speed & Cost Chart</button>
+          <button class="home-quick-btn" id="homeGithubGuideBtn">🚀 Publish on GitHub Pages</button>
+          <button class="home-quick-btn resume-btn" id="homeResumeGameBtn" style="display:none;">▶️ Resume Current Game</button>
+        </div>
+      </div>
+
+      <!-- Main Action Grid (3 Column Hub) -->
+      <div class="home-grid">
+        
+        <!-- Card 1: Local / Pass & Play / AI Bots -->
+        <div class="home-card card-local">
+          <div class="home-card-header">
+            <span class="card-icon">🎮</span>
+            <div>
+              <h3>Local Game</h3>
+              <p>Pass-and-play or solo vs Smart Bots</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <p class="card-desc-text">
+              Play on this screen with 2 to 8 players. Add intelligent AI bots to test different transit routes and strategy cards!
+            </p>
+            <div class="feature-bullets">
+              <span>✓ 2–8 Local Human / Smart AI Bots</span>
+              <span>✓ Procedural Dynamic Map Every Game</span>
+              <span>✓ Opening Ability Card Draft</span>
+            </div>
+            <button class="btn-home-primary" id="homeStartLocalBtn">
+              🕹️ Start Local Game
+            </button>
+          </div>
+        </div>
+
+        <!-- Card 2: Online Multiplayer (Create / Join via Game ID) -->
+        <div class="home-card card-online">
+          <div class="home-card-header">
+            <span class="card-icon">📡</span>
+            <div>
+              <h3>Online Multiplayer</h3>
+              <p>Play with friends remotely via Game ID</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="online-tabs">
+              <button class="online-tab active" id="tabHostRoom">Host Room</button>
+              <button class="online-tab" id="tabJoinRoom">Join with ID</button>
+            </div>
+
+            <!-- Tab Content: Host Room -->
+            <div class="tab-pane active" id="paneHostRoom">
+              <div class="form-group">
+                <label>Your Name:</label>
+                <input type="text" id="hostPlayerNameInput" class="home-input" value="Player 1" maxlength="15" />
+              </div>
+              <div class="form-group">
+                <label>Token Color:</label>
+                <div class="color-picker-row" id="hostColorPicker">
+                  <!-- Injected color swatches -->
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Max Players:</label>
+                <select id="hostMaxPlayersSelect" class="home-select">
+                  <option value="2">2 Players</option>
+                  <option value="3">3 Players</option>
+                  <option value="4" selected>4 Players</option>
+                  <option value="5">5 Players</option>
+                  <option value="6">6 Players</option>
+                  <option value="8">8 Players</option>
+                </select>
+              </div>
+              <button class="btn-home-accent" id="hostCreateRoomBtn">
+                🚀 Create Room (Generate Game ID)
+              </button>
+            </div>
+
+            <!-- Tab Content: Join Room -->
+            <div class="tab-pane" id="paneJoinRoom">
+              <div class="form-group">
+                <label>Your Name:</label>
+                <input type="text" id="joinPlayerNameInput" class="home-input" value="Guest" maxlength="15" />
+              </div>
+              <div class="form-group">
+                <label>Game ID (Room Code):</label>
+                <input type="text" id="joinGameIdInput" class="home-input code-input" placeholder="e.g. K2G-7492" maxlength="10" />
+              </div>
+              <div class="form-group">
+                <label>Token Color:</label>
+                <div class="color-picker-row" id="joinColorPicker">
+                  <!-- Injected color swatches -->
+                </div>
+              </div>
+              <button class="btn-home-primary" id="joinRoomSubmitBtn">
+                ➡️ Join Game Room
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3: Live Open Games Lobby -->
+        <div class="home-card card-lobby">
+          <div class="home-card-header">
+            <span class="card-icon">🏨</span>
+            <div style="flex:1;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3>Open Rooms Lobby</h3>
+                <button class="refresh-lobby-btn" id="refreshLobbyBtn" title="Refresh Open Rooms">🔄 Refresh</button>
+              </div>
+              <p>Active rooms waiting for players</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="open-rooms-list" id="openRoomsContainer">
+              <div class="lobby-empty-hint">
+                <span>📡 Scanning network for open rooms...</span>
+                <p>No active public rooms found. Create a room to invite friends!</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Quick Rules Highlights Section -->
+      <div class="home-rules-summary">
+        <h3 class="rules-summary-title">🚦 How Which Way to Go! Works:</h3>
+        <div class="rules-summary-grid">
+          <div class="rules-step">
+            <span class="step-num">1</span>
+            <strong>Opening Draft</strong>
+            <span>Draw 2 Ability Cards and keep 1 secretly in your hand before traveling.</span>
+          </div>
+          <div class="rules-step">
+            <span class="step-num">2</span>
+            <strong>Pick Your Vehicle</strong>
+            <span>🏃 Walk (Free, 3 pts) • 🏍️ Bike (3 cost) • 🚗 Car (6 cost) • 🚌 Bus (3 cost) • 🚂 Train (9 cost, 15 pts fixed).</span>
+          </div>
+          <div class="rules-step">
+            <span class="step-num">3</span>
+            <strong>Dynamic Traffic</strong>
+            <span>From Round 2+, dice rolls set Red, Green, and Blue roads to Heavy, Medium, or Light traffic.</span>
+          </div>
+          <div class="rules-step">
+            <span class="step-num">4</span>
+            <strong>First to STOP Wins Bonus</strong>
+            <span>Reaching STOP grants +15 pts. Remaining money converts 1:1 into points; remaining distance penalizes 6 pts/stop!</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Dedicated Dynamic Turn Order Sub-Header Bar -->
+  <div class="turn-order-bar" id="turnOrderBar">
+    <div class="turn-order-content">
+      <div class="round-indicator">
+        <span class="round-badge-icon">🔄</span>
+        <strong class="round-title" id="roundNumber">Round 1:</strong>
+      </div>
+      <div class="turn-order-flow" id="turnOrderFlow">
+        <!-- Dynamically generated turn sequence pills: P1 -> P2 -> P3 -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Game Workspace (Dual Sidebar Layout) -->
   <div class="app-container">
 
-    <!-- Interactive Canvas Viewport -->
+    <!-- Left HUD Panel: Traffic Card, Action Log -->
+    <aside class="hud-panel hud-panel-left">
+      <!-- Traffic Status Card Widget -->
+      <div class="traffic-widget">
+        <div class="widget-header">
+          <span>🚦 TRAFFIC STATUS CARD</span>
+          <span class="dice-result" id="trafficDiceDisplay">⚪ Round 1</span>
+        </div>
+        <!-- Column Names for Traffic Status Matrix -->
+        <div class="traffic-table-header">
+          <span class="th-roll">Roll</span>
+          <span class="th-col">Heavy</span>
+          <span class="th-col">Medium</span>
+          <span class="th-col">Light</span>
+        </div>
+        <div class="traffic-table" id="trafficCardRows">
+          <!-- Populated dynamically with color swatches -->
+        </div>
+      </div>
+
+      <!-- Live Action Log -->
+      <div class="log-card">
+        <div class="panel-section-title">📜 GAME LOG</div>
+        <div class="log-content" id="gameLogBox"></div>
+      </div>
+    </aside>
+
+    <!-- Interactive Canvas Viewport (Center) -->
     <main class="board-viewport">
       <canvas id="boardCanvas"></canvas>
 
@@ -55,12 +272,13 @@
       <!-- Viewport Controls -->
       <div class="canvas-controls">
         <button class="control-btn" id="toggleLegendBtn" title="Toggle Legend Overlay">🗺️ Legend</button>
+        <button class="control-btn" id="toggleSpeedChartBtn" title="Toggle Speed & Cost Chart">⚡ Speed & Cost</button>
         <button class="control-btn" id="findActivePlayerBtn" title="Center on Active Player Location">📍 Find My Token</button>
         <button class="control-btn" id="resetZoomBtn" title="Reset View & Center Board">🎯 Center Board</button>
       </div>
 
-      <!-- Map Legend Panel (Roads & Transport Modes) -->
-      <div class="map-legend-panel" id="mapLegendPanel">
+      <!-- Map Legend Panel (Roads & Transport Modes - Collapsed by default) -->
+      <div class="map-legend-panel collapsed" id="mapLegendPanel">
         <div class="legend-header">
           <span class="legend-title">🗺️ MAP & TRANSIT LEGEND</span>
           <button class="legend-close-btn" id="closeLegendBtn">✕</button>
@@ -152,12 +370,73 @@
         </div>
       </div>
 
+      <!-- Speed & Cost Chart Overlay Panel (Collapsed by default) -->
+      <div class="speed-chart-panel collapsed" id="speedChartPanel">
+        <div class="legend-header">
+          <span class="legend-title">⚡ SPEED & COST CHART</span>
+          <button class="legend-close-btn" id="closeSpeedChartBtn">✕</button>
+        </div>
+        <table class="speed-table">
+          <thead>
+            <tr>
+              <th>Mode</th>
+              <th>Cost</th>
+              <th>Heavy</th>
+              <th>Medium</th>
+              <th>Light</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>🏃 Walk / Run</strong></td>
+              <td>Free (0)</td>
+              <td>3 pts</td>
+              <td>3 pts</td>
+              <td>3 pts</td>
+            </tr>
+            <tr>
+              <td><strong>🏍️ Bike</strong></td>
+              <td>3</td>
+              <td>3 pts</td>
+              <td>6 pts</td>
+              <td>9 pts</td>
+            </tr>
+            <tr>
+              <td><strong>🚗 Car / Taxi</strong></td>
+              <td>6</td>
+              <td>9 pts</td>
+              <td>12 pts</td>
+              <td>18 pts</td>
+            </tr>
+            <tr>
+              <td><strong>🚌 Public Bus</strong></td>
+              <td>3</td>
+              <td>6 pts</td>
+              <td>9 pts</td>
+              <td>12 pts</td>
+            </tr>
+            <tr>
+              <td><strong>🚂 Express Train</strong></td>
+              <td>9</td>
+              <td>15 pts</td>
+              <td>15 pts</td>
+              <td>15 pts</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="speed-panel-footer">
+          <p>• <strong>Express Train:</strong> Runs exclusively on rail tracks. Immune to road traffic.</p>
+          <p>• <strong>Public Bus:</strong> Only boards/alights at nodes with bus terminal icons.</p>
+          <p>• <strong>Milestone Bonuses:</strong> Crossing 33, 66, and 100 points grants +9 currency (3 coins).</p>
+        </div>
+      </div>
+
       <!-- Node Hover Tooltip -->
       <div class="node-tooltip" id="nodeTooltip"></div>
     </main>
 
-    <!-- Right HUD Sidebar -->
-    <aside class="hud-sidebar">
+    <!-- Right HUD Panel: Active Player Turn & Players Standings -->
+    <aside class="hud-panel hud-panel-right">
 
       <!-- Active Player Card -->
       <div class="player-turn-card" id="activePlayerCard">
@@ -172,7 +451,7 @@
         <!-- Current Location & Transport Mode Display -->
         <div class="location-status-bar" id="playerLocationBar">
           <div class="location-info">
-            <span class="location-label">📍 Current Location:</span>
+            <span class="location-label">📍 Location:</span>
             <strong class="location-name" id="activePlayerLocation">START</strong>
           </div>
           <div class="current-vehicle-badge" id="activePlayerVehicleTag">
@@ -201,7 +480,7 @@
         <!-- Held Ability Cards Panel -->
         <div class="player-hand-section" id="playerHandSection">
           <div class="hand-header">
-            <span>🎴 Held Ability Cards (<strong id="handCardsCount">0</strong>):</span>
+            <span>🎴 Ability Cards (<strong id="handCardsCount">0</strong>):</span>
           </div>
           <div id="activePlayerCardsList" class="player-hand-list">
             <span class="empty-hint">No ability cards held</span>
@@ -209,85 +488,15 @@
         </div>
 
         <!-- Ability Round Action Button -->
-        <div id="abilityActionsPanel" style="display: none; margin-top: 12px;" class="ability-action-box">
+        <div id="abilityActionsPanel" style="display: none; margin-top: 10px;" class="ability-action-box">
           <button class="btn-secondary" id="passAbilityBtn">Pass / End Ability Turn ⏭️</button>
         </div>
       </div>
 
-      <!-- Traffic Status Card Widget -->
-      <div class="traffic-widget">
-        <div class="widget-header">
-          <span>🚦 TRAFFIC STATUS CARD</span>
-          <span class="dice-result" id="trafficDiceDisplay">⚪ Round 1</span>
-        </div>
-        <div class="traffic-table" id="trafficCardRows">
-          <!-- Populated dynamically -->
-        </div>
-      </div>
-
-      <!-- Speed Chart Quick View -->
-      <div class="speed-chart-summary">
-        <div style="font-size: 13px; font-weight: 700;">⚡ SPEED & COST CHART</div>
-        <table class="speed-table">
-          <thead>
-            <tr>
-              <th>Mode</th>
-              <th>Cost</th>
-              <th>Heavy</th>
-              <th>Med</th>
-              <th>Light</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>🏃 Run</td>
-              <td>0</td>
-              <td>3</td>
-              <td>3</td>
-              <td>3</td>
-            </tr>
-            <tr>
-              <td>🏍️ Bike</td>
-              <td>3</td>
-              <td>3</td>
-              <td>6</td>
-              <td>9</td>
-            </tr>
-            <tr>
-              <td>🚗 Car</td>
-              <td>6</td>
-              <td>9</td>
-              <td>12</td>
-              <td>18</td>
-            </tr>
-            <tr>
-              <td>🚌 Bus</td>
-              <td>3</td>
-              <td>6</td>
-              <td>9</td>
-              <td>12</td>
-            </tr>
-            <tr>
-              <td>🚂 Train</td>
-              <td>9</td>
-              <td>15</td>
-              <td>15</td>
-              <td>15</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
       <!-- All Players Mini Status List -->
       <div class="players-overview">
-        <div style="font-size: 13px; font-weight: 700; margin-bottom: 6px;">👥 PLAYERS</div>
+        <div class="panel-section-title">👥 ALL PLAYERS</div>
         <div id="allPlayersList"></div>
-      </div>
-
-      <!-- Live Action Log -->
-      <div class="log-card">
-        <div style="font-size: 13px; font-weight: 700;">📜 GAME LOG</div>
-        <div class="log-content" id="gameLogBox"></div>
       </div>
 
     </aside>
@@ -326,26 +535,30 @@
     </div>
   </div>
 
-  <!-- 2. Vehicle Choice Modal -->
+  <!-- 2. Vehicle Choice Modal (with Cancel option) -->
   <div class="modal-backdrop" id="vehicleChoiceModal">
     <div class="modal-dialog">
       <div class="modal-header">
         <h2>Select Transportation</h2>
+        <button class="btn-nav" id="closeVehicleChoiceBtn" title="Cancel selection">✕ Cancel</button>
       </div>
       <p style="font-size: 13px; color: var(--text-muted);">
         Destination: <strong id="vehicleChoiceNodeName" style="color: #fff;"></strong>
       </p>
       <div class="vehicle-options-list" id="vehicleOptionsContainer"></div>
+      <button class="btn-secondary cancel-vehicle-btn" id="cancelVehicleChoiceBtn">
+        ↩️ Cancel & Choose Another Node
+      </button>
     </div>
   </div>
 
-  <!-- 3. Ability Card Draw Modal (Draw 2, Keep 1 - Private) -->
+  <!-- 3. Ability Card Draw Modal (Draw 2, Keep 1 - Opening Draft & 'A' Nodes) -->
   <div class="modal-backdrop" id="cardDrawModal">
     <div class="modal-dialog" style="max-width: 640px;">
       <div class="modal-header">
-        <h2>🔒 Secret Ability Card Draw</h2>
+        <h2 id="cardDrawModalTitle">🔒 Secret Ability Card Draw</h2>
       </div>
-      <p style="font-size: 13px; color: var(--text-muted);">
+      <p style="font-size: 13px; color: var(--text-muted);" id="cardDrawModalDesc">
         <strong id="cardDrawPlayerName" style="color: #fbbf24;">Player</strong> landed on an Ability Card node.
         Pick one card to <strong>KEEP secretly in your hand</strong>; the other will be discarded.
       </p>
@@ -394,6 +607,9 @@
       <div style="font-size: 13px; line-height: 1.6; color: #cbd5e1; display: flex; flex-direction: column; gap: 12px;">
         <p><strong>Goal:</strong> Travel from <strong>START</strong> to <strong>STOP</strong> across Dhaka with maximum points and leftover currency.</p>
         
+        <h4 style="color: #fbbf24;">🎁 Opening Ability Card Draft</h4>
+        <p>At the start of the game, each player draws <strong>2 random Ability Cards</strong> and chooses <strong>1 to keep secretly</strong> in hand before traveling begins.</p>
+
         <h4 style="color: #fbbf24;">🚦 Traffic System</h4>
         <p>In Round 1, all roads are Medium traffic. From Round 2 onward, a 6-sided dice roll sets which road colors (Red, Green, Blue) are Heavy, Medium, and Light.</p>
 
@@ -436,7 +652,105 @@
     </div>
   </div>
 
-  <!-- Main JavaScript Standalone Script -->
+  <!-- 7. Online Room Lobby Modal (Waiting for Game Start) -->
+  <div class="modal-backdrop" id="onlineLobbyModal">
+    <div class="modal-dialog" style="max-width: 680px;">
+      <div class="modal-header">
+        <div>
+          <h2>🌐 Online Game Lobby</h2>
+          <span style="font-size: 12px; color: var(--text-muted);" id="lobbyStatusSubtext">Waiting for host to start the game...</span>
+        </div>
+        <button class="btn-nav" id="leaveLobbyBtn">✕ Leave Room</button>
+      </div>
+
+      <!-- Game ID Banner with Copy Option -->
+      <div class="room-id-banner">
+        <div>
+          <span class="banner-lbl">GAME ID:</span>
+          <strong class="banner-id" id="lobbyGameIdDisplay">K2G-XXXX</strong>
+        </div>
+        <button class="copy-id-btn" id="copyGameIdBtn">📋 Copy Game ID & Link</button>
+      </div>
+
+      <!-- Player Slots Grid -->
+      <div class="lobby-roster-title">
+        <span>👥 Connected Players (<span id="lobbyPlayerCountDisplay">1</span>/<span id="lobbyMaxPlayersDisplay">4</span>):</span>
+        <div id="hostLobbyControls" style="display: none; gap: 6px;">
+          <button class="btn-small-action" id="lobbyAddBotBtn">🤖 + Add AI Bot</button>
+        </div>
+      </div>
+      <div class="lobby-slots-grid" id="lobbySlotsContainer">
+        <!-- Rendered player cards -->
+      </div>
+
+      <!-- Lobby Chat & Activity Feed -->
+      <div class="lobby-chat-section">
+        <div class="lobby-chat-box" id="lobbyChatBox"></div>
+        <div class="lobby-chat-input-row">
+          <input type="text" id="lobbyChatInput" placeholder="Say hello to room..." maxlength="80" />
+          <button id="lobbySendChatBtn">Send</button>
+        </div>
+      </div>
+
+      <!-- Footer Actions -->
+      <div class="lobby-footer">
+        <button class="btn-secondary" id="lobbyBackBtn">↩️ Leave Room</button>
+        <button class="btn-primary" id="lobbyStartGameBtn" style="padding: 12px 24px; font-size: 15px;" disabled>
+          ⏳ Waiting for Host to Start...
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. GitHub Pages Online Publishing Guide Modal -->
+  <div class="modal-backdrop" id="githubPagesModal">
+    <div class="modal-dialog" style="max-width: 720px;">
+      <div class="modal-header">
+        <h2>🚀 Publish Online via GitHub Pages</h2>
+        <button class="btn-nav" id="closeGithubGuideBtn">✕ Close</button>
+      </div>
+      <div class="github-guide-content">
+        <p>
+          <strong>Yes!</strong> You can publish this entire game completely free on GitHub Pages. Because Which Way to Go! uses 100% client-side HTML5 Canvas, Web Audio API, and serverless WebSocket rooms, it requires <strong>zero backend hosting cost</strong>!
+        </p>
+
+        <div class="guide-step-card">
+          <div class="guide-step-header">
+            <span>Step 1: Push Code to your GitHub Repository</span>
+          </div>
+          <p>Commit all the files and push them to your repository (<code>umahbub/WhichWay2Go</code>):</p>
+          <div class="guide-code-block">git add .<br>git commit -m "Launch Which Way to Go Online Multiplayer"<br>git push origin main</div>
+        </div>
+
+        <div class="guide-step-card">
+          <div class="guide-step-header">
+            <span>Step 2: Enable GitHub Pages in 3 Clicks</span>
+          </div>
+          <ol style="margin-left: 20px; font-size: 13px; display: flex; flex-direction: column; gap: 4px;">
+            <li>Go to your repository on GitHub: <strong>github.com/umahbub/WhichWay2Go</strong></li>
+            <li>Click on <strong>Settings</strong> ➔ <strong>Pages</strong> (in the left sidebar).</li>
+            <li>Under <strong>Build and deployment ➔ Source</strong>, choose <strong>Deploy from a branch</strong>.</li>
+            <li>Select Branch: <strong>main</strong>, Folder: <strong>/ (root)</strong>, and click <strong>Save</strong>.</li>
+          </ol>
+        </div>
+
+        <div class="guide-step-card">
+          <div class="guide-step-header">
+            <span>Step 3: Share Your Live Game Link!</span>
+          </div>
+          <p>Within 1–2 minutes, GitHub will build your site and publish it live at:</p>
+          <div class="guide-code-block">https://umahbub.github.io/WhichWay2Go/</div>
+          <p style="font-size: 12px; color: #94a3b8;">
+            Anyone with this link can visit on Desktop or Mobile, create a room, share the Game ID, and play together over the internet!
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Client-Side Libraries & Game Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/5.5.0/mqtt.min.js"></script>
+  <script src="js/multiplayer.js"></script>
   <script src="js/game.js"></script>
 </body>
 </html>
