@@ -508,6 +508,7 @@
       this.deck = [];
       this.discardPile = [];
       this.winner = null;
+      this.awaitingCardSelection = false;
 
       this.onLogCallback = null;
       this.onCardDrawPrompt = null;
@@ -594,6 +595,7 @@
       this.trafficStatus = { red: 'medium', green: 'medium', blue: 'medium' };
       this.diceRoll = null;
       this.winner = null;
+      this.awaitingCardSelection = false;
       this.phase = 'PLAYING';
 
       this.log(`🎮 New Game started with ${this.players.length} players!`, 'system');
@@ -773,27 +775,32 @@
         return true;
       }
 
-      // Check Ability Card Draw (A node)
-      if (target.hasCard) {
-        audio.playCardDraw();
-        this.triggerCardDraw(playerIndex);
-      }
-
       return true;
     }
 
-    triggerCardDraw(playerIndex) {
+    drawTwoCards() {
       if (this.deck.length < 2) {
         this.deck = this.deck.concat(this.discardPile);
         this.discardPile = [];
         this.shuffleDeck();
       }
-      const cardsDrawn = [this.deck.pop(), this.deck.pop()].filter(Boolean);
+      return [this.deck.pop(), this.deck.pop()].filter(Boolean);
+    }
+
+    triggerCardDraw(playerIndex, onComplete = null) {
+      const cardsDrawn = this.drawTwoCards();
       const p = this.players[playerIndex];
-      this.log(`🎴 ${p.name} landed on 'A' node and is drawing an Ability Card.`, 'card');
+      this.awaitingCardSelection = true;
+      this.log(`🎴 ${p.name} landed on 'A' node and is drawing an Ability Card (all turns paused until chosen).`, 'card');
 
       if (this.onCardDrawPrompt) {
-        this.onCardDrawPrompt(playerIndex, cardsDrawn);
+        this.onCardDrawPrompt(playerIndex, cardsDrawn, false, () => {
+          this.awaitingCardSelection = false;
+          if (onComplete) onComplete();
+        });
+      } else {
+        this.awaitingCardSelection = false;
+        if (onComplete) onComplete();
       }
     }
 
@@ -1613,11 +1620,120 @@
       this.selectedHostColor = PLAYER_COLORS[0];
       this.selectedJoinColor = PLAYER_COLORS[1];
 
+      // Turn synchronization & 5-minute countdown timer state
+      this.gameSessionId = 0;
+      this.pendingTimeouts = new Set();
+      this.isOpeningDraftActive = false;
+      this.turnTimeLimitSec = 300; // 5 minutes (300 seconds) per human turn / card selection
+      this.turnTimerInterval = null;
+      this.turnTimerRemainingSec = 300;
+      this.turnTimerMode = null; // 'MOVE' | 'CARD_DRAW' | null
+      this.turnTimerPlayerIndex = null;
+      this.remotePendingCardDrawDone = null;
+
       this.initCallbacks();
       this.bindDOM();
       this.initHomeScreen();
       this.initMultiplayer();
       this.showHomeScreen(true);
+    }
+
+    registerTimeout(fn, delayMs) {
+      const id = setTimeout(() => {
+        this.pendingTimeouts.delete(id);
+        fn();
+      }, delayMs);
+      this.pendingTimeouts.add(id);
+      return id;
+    }
+
+    clearPendingTimeouts() {
+      this.pendingTimeouts.forEach((id) => clearTimeout(id));
+      this.pendingTimeouts.clear();
+      this.stopTurnTimer();
+    }
+
+    formatTimerMMSS(totalSeconds) {
+      const clamped = Math.max(0, Math.floor(totalSeconds));
+      const mins = Math.floor(clamped / 60);
+      const secs = clamped % 60;
+      return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+
+    updateTimerBadges() {
+      const formatted = `⏱️ ${this.formatTimerMMSS(this.turnTimerRemainingSec)}`;
+      const isWarning = this.turnTimerRemainingSec <= 60 && this.turnTimerRemainingSec > 15;
+      const isDanger = this.turnTimerRemainingSec <= 15;
+
+      const badgeIds = [
+        'turnTimerBadge',
+        'hudTurnTimerBadge',
+        'cardDrawTimerBadge',
+        'vehicleModalTimerBadge',
+        'cardActionModalTimerBadge'
+      ];
+
+      badgeIds.forEach((id) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerText = formatted;
+        el.classList.remove('hidden', 'warning', 'danger');
+        if (isWarning) el.classList.add('warning');
+        if (isDanger) el.classList.add('danger');
+      });
+    }
+
+    startTurnTimer(mode, playerIndex, onExpire) {
+      if (this.turnTimerInterval) {
+        clearInterval(this.turnTimerInterval);
+        this.turnTimerInterval = null;
+      }
+
+      this.turnTimerMode = mode;
+      this.turnTimerPlayerIndex = playerIndex;
+      this.turnTimerRemainingSec = this.turnTimeLimitSec;
+      this.updateTimerBadges();
+
+      const sessionAtStart = this.gameSessionId;
+      this.turnTimerInterval = setInterval(() => {
+        if (this.gameSessionId !== sessionAtStart || !this.gameInProgress || this.engine.phase === 'GAME_OVER') {
+          this.stopTurnTimer();
+          return;
+        }
+
+        this.turnTimerRemainingSec--;
+        this.updateTimerBadges();
+
+        if (this.turnTimerRemainingSec > 0 && this.turnTimerRemainingSec <= 10) {
+          audio.playTone(660, 0.06, 'sine', 0.08);
+        }
+
+        if (this.turnTimerRemainingSec <= 0) {
+          this.stopTurnTimer();
+          audio.playTone(280, 0.25, 'triangle', 0.2);
+          if (onExpire) onExpire();
+        }
+      }, 1000);
+    }
+
+    stopTurnTimer() {
+      if (this.turnTimerInterval) {
+        clearInterval(this.turnTimerInterval);
+        this.turnTimerInterval = null;
+      }
+      this.turnTimerMode = null;
+      this.turnTimerPlayerIndex = null;
+
+      const badgeIds = [
+        'turnTimerBadge',
+        'hudTurnTimerBadge',
+        'vehicleModalTimerBadge',
+        'cardActionModalTimerBadge'
+      ];
+      badgeIds.forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('hidden');
+      });
     }
 
     showHomeScreen(show) {
@@ -2040,6 +2156,8 @@
     }
 
     startOnlineGameSession(configs, graphData, priorityIndex) {
+      this.gameSessionId++;
+      this.clearPendingTimeouts();
       this.isOnlineGame = true;
       this.gameInProgress = true;
       this.localClientId = window.K2GMultiplayer ? window.K2GMultiplayer.clientId : null;
@@ -2055,7 +2173,7 @@
 
       this.runOpeningCardDraft(() => {
         this.updateHUD();
-        this.checkAITurn();
+        this.startTurnCycle();
       });
     }
 
@@ -2085,8 +2203,13 @@
         case 'DRAFT_CARD': {
           const p = this.engine.players[actionData.playerIndex];
           if (p) {
-            this.engine.keepCard(actionData.playerIndex, actionData.cardId, p.hand.concat(this.engine.deck), true);
+            this.engine.keepCard(actionData.playerIndex, actionData.cardId, p.hand.concat(this.engine.deck), Boolean(actionData.isOpeningDraft));
             this.updateHUD();
+          }
+          if (this.remotePendingCardDrawDone) {
+            const doneFn = this.remotePendingCardDrawDone;
+            this.remotePendingCardDrawDone = null;
+            doneFn();
           }
           break;
         }
@@ -2094,7 +2217,7 @@
         case 'NEXT_ROUND': {
           this.engine.startNextRound(actionData.priorityIndex, actionData.diceRoll);
           this.updateHUD();
-          this.checkAITurn();
+          this.startTurnCycle();
           break;
         }
       }
@@ -2104,7 +2227,7 @@
       this.renderer.onNodeClick = (node) => this.handleNodeClick(node);
       this.renderer.onNodeHover = (node) => this.handleNodeHover(node);
       this.engine.onLogCallback = (entry) => this.appendLog(entry);
-      this.engine.onCardDrawPrompt = (pIdx, cards) => this.showCardDraw(pIdx, cards);
+      this.engine.onCardDrawPrompt = (pIdx, cards, isOpeningDraft, onDone) => this.showCardDraw(pIdx, cards, isOpeningDraft, onDone);
       this.engine.onCardPlayCallback = (player, card, param) => this.showCardRevealBanner(player, card, param);
       this.engine.onGameOverCallback = (standings) => this.showGameOver(standings);
     }
@@ -2227,6 +2350,8 @@
 
     startNewGame() {
       audio.ensureContext();
+      this.gameSessionId++;
+      this.clearPendingTimeouts();
       this.isOnlineGame = false;
       this.gameInProgress = true;
       this.showHomeScreen(false);
@@ -2255,15 +2380,18 @@
       // Run Opening Ability Card Draft (Each user picks 1 of 2 random ability cards before traveling)
       this.runOpeningCardDraft(() => {
         this.updateHUD();
-        this.checkAITurn();
+        this.startTurnCycle();
       });
     }
 
     runOpeningCardDraft(onComplete) {
       let pIdx = 0;
+      this.isOpeningDraftActive = true;
 
       const draftForNextPlayer = () => {
         if (pIdx >= this.engine.players.length) {
+          this.isOpeningDraftActive = false;
+          this.stopTurnTimer();
           this.engine.log(`✨ Opening card draft complete! All players hold 1 starting ability card. Round 1 begins!`, 'system');
           this.updateHUD();
           if (onComplete) onComplete();
@@ -2275,12 +2403,7 @@
         pIdx++;
 
         // Draw 2 random ability cards from the deck
-        if (this.engine.deck.length < 2) {
-          this.engine.deck = this.engine.deck.concat(this.engine.discardPile);
-          this.engine.discardPile = [];
-          this.engine.shuffleDeck();
-        }
-        const cardsDrawn = [this.engine.deck.pop(), this.engine.deck.pop()].filter(Boolean);
+        const cardsDrawn = this.engine.drawTwoCards();
 
         if (player.isAi) {
           const keptId = this.ai.chooseCardToKeep(currentIndex, cardsDrawn);
@@ -2295,6 +2418,105 @@
 
       this.engine.log(`🎴 OPENING ABILITY CARD DRAFT: Each player picks 1 card from 2 random draws!`, 'card');
       draftForNextPlayer();
+    }
+
+    startTurnCycle() {
+      if (this.engine.phase === 'GAME_OVER' || this.isOpeningDraftActive || this.engine.awaitingCardSelection) {
+        return;
+      }
+
+      const activeIdx = this.engine.activePlayerIndex;
+      const active = this.engine.players[activeIdx];
+      if (!active || active.hasFinished) return;
+
+      if (active.isAi) {
+        this.stopTurnTimer();
+        this.checkAITurn();
+      } else {
+        // Human player's turn: everything pauses waiting for human input, with a 5-minute countdown timer
+        this.startTurnTimer('MOVE', activeIdx, () => {
+          this.executeRandomTimeoutTurn(activeIdx);
+        });
+      }
+    }
+
+    getRandomCardParam(playerIndex, card) {
+      if (!card) return null;
+      if (card.effectType === 'BLOCK_ROAD_COLOR') {
+        const colors = ['red', 'green', 'blue'];
+        return colors[Math.floor(Math.random() * colors.length)];
+      }
+      if (card.effectType === 'FREE_VEHICLE') {
+        return Math.random() < 0.5 ? 'car' : 'bike';
+      }
+      if (card.effectType === 'STEAL_FROM_OPPONENT') {
+        const validOpponents = this.engine.players
+          .map((p, idx) => ({ p, idx }))
+          .filter(({ p, idx }) => idx !== playerIndex && !p.hasFinished);
+        if (validOpponents.length > 0) {
+          return validOpponents[Math.floor(Math.random() * validOpponents.length)].idx;
+        }
+      }
+      return null;
+    }
+
+    executeRandomTimeoutTurn(playerIndex) {
+      if (this.engine.phase === 'GAME_OVER') return;
+      if (this.engine.activePlayerIndex !== playerIndex) return;
+      if (this.isOnlineGame && playerIndex !== this.localPlayerIndex && !this.isHost) return;
+
+      const active = this.engine.players[playerIndex];
+      if (!active || active.hasFinished) return;
+
+      // Close any open choice modals for this turn
+      this.toggleModal('vehicleChoiceModal', false);
+      this.toggleModal('cardActionModal', false);
+
+      // 1. If the player holds any mandatory "Play Right Away" / "Play At Once" cards, play them first
+      let mandatoryCards = active.hand.filter((c) => c.type === 'Play Right Away' || c.type === 'Play At Once');
+      while (mandatoryCards.length > 0) {
+        const card = mandatoryCards[0];
+        const randomParam = this.getRandomCardParam(playerIndex, card);
+        this.engine.log(`⏰ 5:00 timer expired: Auto-playing mandatory card "${card.title}" for ${active.name}.`, 'alert');
+        this.activateCard(card.instanceId, randomParam);
+        mandatoryCards = active.hand.filter((c) => c.type === 'Play Right Away' || c.type === 'Play At Once');
+      }
+
+      // 2. Pick a random valid affordable travel move so the game continues
+      const validMoves = this.engine.getValidMovesForPlayer(playerIndex);
+      const affordableMoves = validMoves.filter((m) => m.canAfford);
+      const candidates = affordableMoves.length > 0 ? affordableMoves : validMoves.filter((m) => m.cost === 0);
+
+      if (candidates.length > 0) {
+        const randomMove = candidates[Math.floor(Math.random() * candidates.length)];
+        this.engine.log(
+          `⏰ 5:00 turn timer expired for ${active.name}! Executing a random move (${randomMove.vehicleName} ➔ ${randomMove.targetNodeName}) so the game goes on.`,
+          'alert'
+        );
+        this.executeMove(randomMove, false, null, true);
+      } else {
+        this.engine.log(`⏰ 5:00 turn timer expired for ${active.name} (no valid moves available). Advancing turn.`, 'alert');
+        this.finishTurnAndAdvance(false);
+      }
+    }
+
+    finishTurnAndAdvance(isAiMove = false, onDone = null) {
+      if (this.engine.phase === 'GAME_OVER') {
+        this.stopTurnTimer();
+        return;
+      }
+
+      const sessionAtSchedule = this.gameSessionId;
+      const advanceDelay = isAiMove ? 800 : 250;
+      this.registerTimeout(() => {
+        if (this.gameSessionId !== sessionAtSchedule || this.engine.phase === 'GAME_OVER') return;
+        if (this.isOpeningDraftActive || this.engine.awaitingCardSelection) return;
+
+        this.engine.advanceTurn();
+        this.updateHUD();
+        this.startTurnCycle();
+        if (onDone) onDone();
+      }, advanceDelay);
     }
 
     updateHUD() {
@@ -2347,6 +2569,12 @@
       if (this.engine.phase === 'GAME_OVER') {
         badge.innerText = '🏁 GAME OVER';
         badge.className = 'phase-tag game-over-phase';
+      } else if (this.isOpeningDraftActive) {
+        badge.innerText = '🎁 OPENING CARD DRAFT (PAUSED FOR CHOICE)';
+        badge.className = 'phase-tag ability-phase';
+      } else if (this.engine.awaitingCardSelection) {
+        badge.innerText = `🎴 ${active.name} Choosing Ability Card... (Paused)`;
+        badge.className = 'phase-tag ability-phase';
       } else {
         let buffTags = [];
         if (active.doublePointsBonus) buffTags.push('⚡ 2x Nitro');
@@ -2450,6 +2678,7 @@
             if (playBtn) {
               playBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
+                if (this.isOpeningDraftActive || this.engine.awaitingCardSelection) return;
                 this.promptCardPlayOptions(card);
               });
             }
@@ -2510,7 +2739,12 @@
         pList.appendChild(item);
       });
 
-      if (this.engine.phase !== 'GAME_OVER' && !active.isAi) {
+      if (
+        this.engine.phase !== 'GAME_OVER' &&
+        !active.isAi &&
+        !this.isOpeningDraftActive &&
+        !this.engine.awaitingCardSelection
+      ) {
         this.renderer.highlightedMoves = this.engine.getValidMovesForPlayer(this.engine.activePlayerIndex);
       } else {
         this.renderer.highlightedMoves = [];
@@ -2660,7 +2894,7 @@
     }
 
     handleNodeClick(node) {
-      if (this.engine.phase === 'GAME_OVER') return;
+      if (this.engine.phase === 'GAME_OVER' || this.isOpeningDraftActive || this.engine.awaitingCardSelection) return;
       const active = this.engine.players[this.engine.activePlayerIndex];
       if (!active || active.isAi) return;
 
@@ -2732,39 +2966,101 @@
       this.toggleModal('vehicleChoiceModal', true);
     }
 
-    executeMove(move, isAiMove = false, onDone = null) {
-      if (this.isOnlineGame && !isAiMove && this.engine.activePlayerIndex === this.localPlayerIndex) {
+    executeMove(move, isAiMove = false, onDone = null, isTimeoutAutoMove = false) {
+      const playerIndex = this.engine.activePlayerIndex;
+      const activePlayer = this.engine.players[playerIndex];
+
+      // Stop the move countdown timer now that a move is being executed
+      this.stopTurnTimer();
+
+      if (this.isOnlineGame && !isAiMove && playerIndex === this.localPlayerIndex) {
         if (window.K2GMultiplayer) {
           window.K2GMultiplayer.sendGameAction('EXECUTE_MOVE', {
-            playerIndex: this.engine.activePlayerIndex,
+            playerIndex: playerIndex,
             move: move
           });
         }
       }
 
       audio.playMove(move.vehicleId);
-      const success = this.engine.executePlayerMove(this.engine.activePlayerIndex, move);
-      if (!success) return;
+      const success = this.engine.executePlayerMove(playerIndex, move);
+      if (!success) {
+        // Restore timer if human move failed validation
+        if (activePlayer && !activePlayer.isAi && this.engine.phase !== 'GAME_OVER') {
+          this.startTurnTimer('MOVE', playerIndex, () => {
+            this.executeRandomTimeoutTurn(playerIndex);
+          });
+        }
+        return;
+      }
 
       this.updateHUD();
-      if (this.engine.phase !== 'GAME_OVER') {
-        const advanceDelay = isAiMove ? 800 : 0;
-        setTimeout(() => {
-          if (this.engine.phase !== 'GAME_OVER') {
-            this.engine.advanceTurn();
-            this.updateHUD();
-            this.checkAITurn();
-          }
-          if (onDone) onDone();
-        }, advanceDelay);
+      if (this.engine.phase === 'GAME_OVER') {
+        this.stopTurnTimer();
+        if (onDone) onDone();
+        return;
       }
+
+      const targetNode = this.engine.nodesMap.get(move.targetNodeId);
+
+      // If the player landed on an Ability Card ('A') node, PAUSE all subsequent turns until they pick their card!
+      if (targetNode && targetNode.hasCard && !targetNode.isStop) {
+        audio.playCardDraw();
+        this.engine.awaitingCardSelection = true;
+        this.updateHUD();
+
+        if (isTimeoutAutoMove) {
+          // Player already timed out on their move; auto-pick 1 of 2 drawn cards so the game continues immediately
+          const cardsDrawn = this.engine.drawTwoCards();
+          if (cardsDrawn.length > 0) {
+            const randomCard = cardsDrawn[Math.floor(Math.random() * cardsDrawn.length)];
+            this.engine.log(`⏰ Auto-selected 1 random Ability Card for ${activePlayer.name}.`, 'alert');
+            this.engine.keepCard(playerIndex, randomCard.instanceId, cardsDrawn, false);
+            if (this.isOnlineGame && window.K2GMultiplayer) {
+              window.K2GMultiplayer.sendGameAction('DRAFT_CARD', {
+                playerIndex: playerIndex,
+                cardId: randomCard.instanceId,
+                isOpeningDraft: false
+              });
+            }
+          }
+          this.engine.awaitingCardSelection = false;
+          this.updateHUD();
+          this.finishTurnAndAdvance(isAiMove, onDone);
+          return;
+        }
+
+        if (this.isOnlineGame && activePlayer && !activePlayer.isAi && playerIndex !== this.localPlayerIndex) {
+          // Remote human player is choosing an Ability Card; pause until DRAFT_CARD arrives
+          this.engine.log(`⏳ Waiting for ${activePlayer.name} to choose an Ability Card...`, 'card');
+          this.remotePendingCardDrawDone = () => {
+            this.engine.awaitingCardSelection = false;
+            this.updateHUD();
+            this.finishTurnAndAdvance(false, onDone);
+          };
+          return;
+        }
+
+        this.engine.triggerCardDraw(playerIndex, () => {
+          this.engine.awaitingCardSelection = false;
+          this.updateHUD();
+          this.finishTurnAndAdvance(isAiMove, onDone);
+        });
+        return;
+      }
+
+      // Standard node arrival: advance turn
+      this.finishTurnAndAdvance(isAiMove, onDone);
     }
 
     showCardDraw(playerIndex, cards, isOpeningDraft = false, onDone = null) {
       const p = this.engine.players[playerIndex];
+      this.engine.awaitingCardSelection = true;
+
       if (p.isAi) {
         const keptId = this.ai.chooseCardToKeep(playerIndex, cards);
         this.engine.keepCard(playerIndex, keptId, cards, isOpeningDraft);
+        this.engine.awaitingCardSelection = false;
         this.updateHUD();
         if (onDone) onDone();
         return;
@@ -2787,6 +3083,35 @@
       const c = document.getElementById('drawCardsContainer');
       c.innerHTML = '';
 
+      let resolved = false;
+      const completeCardChoice = (chosenCard, wasTimeout = false) => {
+        if (resolved) return;
+        resolved = true;
+        this.stopTurnTimer();
+        this.engine.awaitingCardSelection = false;
+
+        if (wasTimeout) {
+          this.engine.log(
+            `⏰ 5:00 timer expired! Randomly selected 1 Ability Card for ${p.name} so the game goes on.`,
+            'alert'
+          );
+        }
+
+        this.engine.keepCard(playerIndex, chosenCard.instanceId, cards, isOpeningDraft);
+        if (this.isOnlineGame && window.K2GMultiplayer) {
+          window.K2GMultiplayer.sendGameAction('DRAFT_CARD', {
+            playerIndex: playerIndex,
+            cardId: chosenCard.instanceId,
+            isOpeningDraft: isOpeningDraft
+          });
+        }
+        this.toggleModal('cardDrawModal', false);
+        this.updateHUD();
+        if (onDone) {
+          onDone();
+        }
+      };
+
       cards.forEach((card) => {
         const div = document.createElement('div');
         div.className = `ability-card-view category-${card.category}`;
@@ -2798,27 +3123,25 @@
           <button class="keep-card-btn">KEEP THIS CARD 🎴</button>
         `;
         div.querySelector('.keep-card-btn').addEventListener('click', () => {
-          this.engine.keepCard(playerIndex, card.instanceId, cards, isOpeningDraft);
-          if (this.isOnlineGame && window.K2GMultiplayer) {
-            window.K2GMultiplayer.sendGameAction('DRAFT_CARD', {
-              playerIndex: playerIndex,
-              cardId: card.instanceId,
-              isOpeningDraft: isOpeningDraft
-            });
-          }
-          this.toggleModal('cardDrawModal', false);
-          this.updateHUD();
-          if (onDone) {
-            onDone();
-          }
+          completeCardChoice(card, false);
         });
         c.appendChild(div);
       });
 
       this.toggleModal('cardDrawModal', true);
+      this.updateHUD();
+
+      // Start 5-minute countdown timer for human player's card choice
+      this.startTurnTimer('CARD_DRAW', playerIndex, () => {
+        const randomCard = cards[Math.floor(Math.random() * cards.length)] || cards[0];
+        if (randomCard) {
+          completeCardChoice(randomCard, true);
+        }
+      });
     }
 
     showGameOver(standings) {
+      this.stopTurnTimer();
       const tbody = document.getElementById('leaderboardBody');
       tbody.innerHTML = '';
       standings.forEach((p, idx) => {
@@ -2837,10 +3160,13 @@
     }
 
     checkAITurn() {
-      if (this.engine.phase === 'GAME_OVER') return;
+      if (this.engine.phase === 'GAME_OVER' || this.isOpeningDraftActive || this.engine.awaitingCardSelection) return;
       if (this.isOnlineGame && !this.isHost) return;
-      const active = this.engine.players[this.engine.activePlayerIndex];
+      const activeIdx = this.engine.activePlayerIndex;
+      const active = this.engine.players[activeIdx];
       if (!active || !active.isAi || active.hasFinished) return;
+
+      const sessionAtStart = this.gameSessionId;
 
       // 1. Bot Turn Start: Center camera on active bot & show thinking state
       const badge = document.getElementById('phaseBadge');
@@ -2848,26 +3174,42 @@
         badge.innerText = `🤖 ${active.name} is planning turn...`;
         badge.className = 'phase-tag ability-phase';
       }
-      this.renderer.centerOnNode(active.currentNodeId, this.engine.activePlayerIndex);
-      this.renderer.highlightedMoves = this.engine.getValidMovesForPlayer(this.engine.activePlayerIndex);
+      this.renderer.centerOnNode(active.currentNodeId, activeIdx);
+      this.renderer.highlightedMoves = this.engine.getValidMovesForPlayer(activeIdx);
       this.renderer.render();
 
       // Delay 1: Bot "thinks" and evaluates card play (950ms)
-      setTimeout(() => {
-        if (this.engine.phase === 'GAME_OVER') return;
+      this.registerTimeout(() => {
+        if (
+          this.gameSessionId !== sessionAtStart ||
+          this.engine.phase === 'GAME_OVER' ||
+          this.isOpeningDraftActive ||
+          this.engine.awaitingCardSelection ||
+          this.engine.activePlayerIndex !== activeIdx
+        ) {
+          return;
+        }
 
         // Check if bot wants to play an ability card
-        const playedCard = this.ai.chooseAbilityAction(this.engine.activePlayerIndex);
+        const playedCard = this.ai.chooseAbilityAction(activeIdx);
         this.updateHUD();
 
         // If a card was played, give the human time to see the reveal banner and log (1300ms)
         const postCardDelay = playedCard ? 1300 : 400;
 
-        setTimeout(() => {
-          if (this.engine.phase === 'GAME_OVER') return;
+        this.registerTimeout(() => {
+          if (
+            this.gameSessionId !== sessionAtStart ||
+            this.engine.phase === 'GAME_OVER' ||
+            this.isOpeningDraftActive ||
+            this.engine.awaitingCardSelection ||
+            this.engine.activePlayerIndex !== activeIdx
+          ) {
+            return;
+          }
 
           // 2. Bot selects travel move
-          const move = this.ai.chooseTravelMove(this.engine.activePlayerIndex);
+          const move = this.ai.chooseTravelMove(activeIdx);
           if (move) {
             // Highlight target destination node and update status
             if (badge) {
@@ -2878,18 +3220,21 @@
             this.renderer.render();
 
             // Delay 2: Pause to let human player see destination highlight (800ms)
-            setTimeout(() => {
-              if (this.engine.phase === 'GAME_OVER') return;
+            this.registerTimeout(() => {
+              if (
+                this.gameSessionId !== sessionAtStart ||
+                this.engine.phase === 'GAME_OVER' ||
+                this.isOpeningDraftActive ||
+                this.engine.awaitingCardSelection ||
+                this.engine.activePlayerIndex !== activeIdx
+              ) {
+                return;
+              }
               this.executeMove(move, true);
             }, 800);
           } else {
             // No valid move, advance turn
-            setTimeout(() => {
-              if (this.engine.phase === 'GAME_OVER') return;
-              this.engine.advanceTurn();
-              this.updateHUD();
-              this.checkAITurn();
-            }, 600);
+            this.finishTurnAndAdvance(true);
           }
         }, postCardDelay);
       }, 950);

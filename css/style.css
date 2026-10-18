@@ -65,6 +65,47 @@ header {
 .header-status {
   display: flex;
   align-items: center;
+  gap: 10px;
+}
+
+.turn-timer-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  background: rgba(56, 189, 248, 0.16);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.5);
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.turn-timer-badge.compact {
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 6px;
+}
+
+.turn-timer-badge.warning {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border-color: #f59e0b;
+}
+
+.turn-timer-badge.danger {
+  background: rgba(239, 68, 68, 0.25);
+  color: #f87171;
+  border-color: #ef4444;
+  animation: pulseGlow 1s infinite;
+}
+
+.turn-timer-badge.hidden {
+  display: none !important;
 }
 
 /* Dedicated Dynamic Turn Order Sub-Header Bar (Compact & Sleek) */

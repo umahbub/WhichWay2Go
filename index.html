@@ -18,9 +18,10 @@
       </div>
     </div>
 
-    <!-- Active Turn / Phase Status Badge -->
+    <!-- Active Turn / Phase Status Badge & Human Turn Countdown Timer -->
     <div class="header-status">
       <span class="phase-tag travel-phase" id="phaseBadge">🚗 TRAVEL ROUND</span>
+      <span class="turn-timer-badge hidden" id="turnTimerBadge" title="5-minute turn countdown timer (a random move is made if time runs out)">⏱️ 05:00</span>
     </div>
 
     <!-- Navigation & Utility Buttons -->
@@ -445,7 +446,10 @@
             <span class="color-dot" id="activePlayerColorDot"></span>
             <span class="player-name" id="activePlayerName">Player 1</span>
           </div>
-          <span class="priority-badge" id="priorityBadge">Priority: <strong id="priorityHolderName">P1</strong></span>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span class="turn-timer-badge compact hidden" id="hudTurnTimerBadge" title="Time remaining for current turn">⏱️ 05:00</span>
+            <span class="priority-badge" id="priorityBadge">Priority: <strong id="priorityHolderName">P1</strong></span>
+          </div>
         </div>
 
         <!-- Current Location & Transport Mode Display -->
@@ -540,7 +544,10 @@
     <div class="modal-dialog">
       <div class="modal-header">
         <h2>Select Transportation</h2>
-        <button class="btn-nav" id="closeVehicleChoiceBtn" title="Cancel selection">✕ Cancel</button>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span class="turn-timer-badge hidden" id="vehicleModalTimerBadge" title="Time remaining to make your move">⏱️ 05:00</span>
+          <button class="btn-nav" id="closeVehicleChoiceBtn" title="Cancel selection">✕ Cancel</button>
+        </div>
       </div>
       <p style="font-size: 13px; color: var(--text-muted);">
         Destination: <strong id="vehicleChoiceNodeName" style="color: #fff;"></strong>
@@ -557,13 +564,14 @@
     <div class="modal-dialog" style="max-width: 640px;">
       <div class="modal-header">
         <h2 id="cardDrawModalTitle">🔒 Secret Ability Card Draw</h2>
+        <span class="turn-timer-badge" id="cardDrawTimerBadge" title="Time remaining to choose a card (a random card will be selected if time expires)">⏱️ 05:00</span>
       </div>
       <p style="font-size: 13px; color: var(--text-muted);" id="cardDrawModalDesc">
         <strong id="cardDrawPlayerName" style="color: #fbbf24;">Player</strong> landed on an Ability Card node.
         Pick one card to <strong>KEEP secretly in your hand</strong>; the other will be discarded.
       </p>
       <div style="font-size: 12px; color: #34d399; background: rgba(52, 211, 153, 0.1); border: 1px solid rgba(52, 211, 153, 0.25); padding: 6px 10px; border-radius: 6px; margin-bottom: 12px;">
-        👁️ <strong>Privacy Rule:</strong> Other players will only see that you are holding an Ability Card. The card ability remains hidden until you play it!
+        👁️ <strong>Privacy & Turn Pause:</strong> All other players' turns are paused while you choose your card. If no choice is made within 5 minutes, a random card will be selected automatically so the game continues!
       </div>
       <div class="cards-draw-grid" id="drawCardsContainer"></div>
     </div>
@@ -641,7 +649,10 @@
     <div class="modal-dialog" style="max-width: 520px;">
       <div class="modal-header">
         <h2 id="cardActionModalTitle">🎴 Play Ability Card</h2>
-        <button class="btn-nav" id="closeCardActionBtn">✕</button>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span class="turn-timer-badge hidden" id="cardActionModalTimerBadge" title="Time remaining to make your move">⏱️ 05:00</span>
+          <button class="btn-nav" id="closeCardActionBtn">✕</button>
+        </div>
       </div>
       <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;" id="cardActionModalDesc">
         Choose your option to execute this card:
