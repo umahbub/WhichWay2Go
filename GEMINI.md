@@ -50,7 +50,7 @@
      - **Walk/Run**: 0 cost. Earns 3 pts (all traffic). Always available.
      - **Bike**: 2 cost. Earns 8 (Heavy) / 8 (Med) / 10 (Light) pts. Board at Bike Station (including START); stays with you on consecutive road turns.
      - **Bus**: 3 cost. Earns 6 (Heavy) / 10 (Med) / 13 (Light) pts. Board at any Bus Station (including START).
-     - **Car**: 6 cost. Earns 6 (Heavy) / 12 (Med) / 19 (Light) pts. Board at a Car Station or via Vehicle Permit; stays with you on consecutive road turns.
+     - **Car**: 6 cost. Earns 6 (Heavy) / 12 (Med) / 19 (Light) pts. Board at a Car Station or via "Call a Uber"; stays with you on consecutive road turns.
      - **Train**: 6 cost. Earns 16 pts (fixed). Board at a Train Station along a Rail Track. Immune to traffic & roadblocks.
 3. **Traffic System**:
    - From Round 2+, roll 6-sided dice to determine traffic row on the Traffic Status Card:

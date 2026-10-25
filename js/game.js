@@ -603,7 +603,7 @@
     { id: 'c_express',   copies: 4, title: 'Green Wave Pass',          category: 'advantage', type: 'Play Once Any Time', description: 'Treat your road on your next move as Light Traffic and bypass any Roadblock.', effectType: 'LIGHT_TRAFFIC_BUFF' },
     { id: 'c_siren',     copies: 3, title: 'VIP Free Transit Pass',    category: 'advantage', type: 'Play Once Any Time', description: 'Your next vehicle ride (even Car or Train!) costs 0 Currency, bypasses Roadblocks, and grants +3 bonus pts.', effectType: 'FREE_EXTRA_STEP' },
     { id: 'c_fuel',      copies: 4, title: 'Fuel & Transit Voucher',   category: 'advantage', type: 'Play Once Any Time', description: 'Instantly claim +6 Currency (2 coins) from the city reserve.', effectType: 'ADD_CURRENCY_6' },
-    { id: 'c_upgrade',   copies: 3, title: 'Permanent Vehicle Permit', category: 'advantage', type: 'Play Once Any Time', description: 'Claim a permanent Car (🚗) or Bike (🏍️) permit to board from any node all game, plus +2 Currency rebate!', effectType: 'FREE_VEHICLE' },
+    { id: 'c_upgrade',   copies: 3, title: 'Call a Uber',              category: 'advantage', type: 'Play Once Any Time', description: 'Hail an Uber Car (🚗) or Bike (🏍️) from any node (no station needed!) plus +2 Currency promo credit!', effectType: 'FREE_VEHICLE' },
     { id: 'c_roadblock', copies: 3, title: 'Set Roadblock',            category: 'attack',    type: 'Play Once Any Time', description: 'Select a road color (Red, Green, Blue) to BLOCK for all opponents this round (you pass freely).', effectType: 'BLOCK_ROAD_COLOR' },
     { id: 'c_steal',     copies: 3, title: 'Road Tax Extortion',       category: 'attack',    type: 'Play Once Any Time', description: 'Select an opponent to collect 3 Currency from (or 4 pts if they have under 3 Currency)!', effectType: 'STEAL_FROM_OPPONENT' },
     { id: 'c_grant',     copies: 2, title: 'Municipal Transit Grant',  category: 'advantage', type: 'Play Right Away',    description: 'Mandatory: Immediately receive +6 Currency and +3 bonus points from the municipal fund!', effectType: 'GRANT_CURRENCY_9' },
@@ -1076,10 +1076,10 @@
           p.money += 2;
           if (selectionParam === 'bike') {
             p.vehicleTokens.add('bike');
-            this.log(`🏍️ Permanent Bike Permit + 2 Currency rebate claimed by ${p.name}!`, 'bonus');
+            this.log(`🏍️ Uber Bike hailed! ${p.name} can now ride a Bike from any node + 2 Currency promo credit!`, 'bonus');
           } else {
             p.vehicleTokens.add('car');
-            this.log(`🚗 Permanent Car Permit + 2 Currency rebate claimed by ${p.name}!`, 'bonus');
+            this.log(`🚗 Uber Car hailed! ${p.name} can now ride a Car from any node + 2 Currency promo credit!`, 'bonus');
           }
           break;
         case 'BLOCK_ROAD_COLOR': {
@@ -3199,8 +3199,8 @@
 
         case 'FREE_VEHICLE': {
           const options = [
-            { id: 'car', icon: '🚗', title: 'Claim Free Car Permit', desc: 'Keep Car token permanently in hand.' },
-            { id: 'bike', icon: '🏍️', title: 'Claim Free Bike Permit', desc: 'Keep Bike token permanently in hand.' }
+            { id: 'car', icon: '🚗', title: 'Call a Car Uber', desc: 'Hail a Car from any node (plus +2 Currency promo credit).' },
+            { id: 'bike', icon: '🏍️', title: 'Call a Bike Uber', desc: 'Hail a Bike from any node (plus +2 Currency promo credit).' }
           ];
           options.forEach((opt) => {
             const btn = document.createElement('button');
