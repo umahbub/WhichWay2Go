@@ -128,6 +128,14 @@
                   <option value="8">8 Players</option>
                 </select>
               </div>
+              <div class="form-group">
+                <label>Map Difficulty:</label>
+                <select id="hostMapDifficultySelect" class="home-select">
+                  <option value="easy">🟢 Easy (3–5 Levels • 2–4 Nodes/Lvl)</option>
+                  <option value="medium" selected>🟡 Medium (4–7 Levels • 4–6 Nodes/Lvl)</option>
+                  <option value="hard">🔴 Hard (7–10 Levels • 6–12 Nodes/Lvl)</option>
+                </select>
+              </div>
               <button class="btn-home-accent" id="hostCreateRoomBtn">
                 🚀 Create Room (Generate Game ID)
               </button>
@@ -213,6 +221,10 @@
   <!-- Dedicated Dynamic Turn Order Sub-Header Bar -->
   <div class="turn-order-bar" id="turnOrderBar">
     <div class="turn-order-content">
+      <div class="round-indicator" id="mapDifficultyBadge" style="border-color: rgba(56, 189, 248, 0.5); background: rgba(56, 189, 248, 0.12);" title="Current Map Difficulty & Depth">
+        <span class="round-badge-icon">🗺️</span>
+        <strong class="round-title" id="mapDifficultyLabel" style="color: #38bdf8;">Map: Medium</strong>
+      </div>
       <div class="round-indicator">
         <span class="round-badge-icon">🔄</span>
         <strong class="round-title" id="roundNumber">Round 1:</strong>
@@ -432,8 +444,18 @@
         </div>
       </div>
 
-      <!-- Node Hover Tooltip -->
-      <div class="node-tooltip" id="nodeTooltip"></div>
+      <!-- Fixed Node Information Box (Always anchored at top-right of board viewport) -->
+      <div class="node-info-fixed-box" id="nodeTooltip">
+        <div class="node-info-header">
+          <span>📍 NODE INFORMATION</span>
+          <span class="node-info-level-pill" id="nodeInfoLevelPill">Hover Node</span>
+        </div>
+        <div class="node-info-body" id="nodeInfoBody">
+          <div class="node-info-placeholder">
+            Hover over any node on the map to inspect its area, level, and available transit stations.
+          </div>
+        </div>
+      </div>
     </main>
 
     <!-- Right HUD Panel: Active Player Turn & Players Standings -->
@@ -515,8 +537,17 @@
         <h2>🎮 New Game Setup</h2>
       </div>
       <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
-        Choose player count (2 to 8) and configure human or AI opponents.
+        Choose map difficulty, player count (2 to 8), and configure human or AI opponents.
       </p>
+
+      <div style="margin-bottom: 16px;">
+        <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">Map Difficulty & Size:</label>
+        <select class="form-select" id="mapDifficultySelect" style="width: 100%;">
+          <option value="easy">🟢 Easy (3–5 Levels • 2–4 Nodes per Level)</option>
+          <option value="medium" selected>🟡 Medium (4–7 Levels • 4–6 Nodes per Level)</option>
+          <option value="hard">🔴 Hard (7–10 Levels • 6–12 Nodes per Level)</option>
+        </select>
+      </div>
 
       <div style="margin-bottom: 16px;">
         <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">Number of Players:</label>

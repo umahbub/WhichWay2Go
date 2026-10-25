@@ -55,6 +55,33 @@
   // ==========================================
   // PROCEDURAL DYNAMIC DHAKA MAP GENERATOR
   // ==========================================
+  const MAP_DIFFICULTY_CONFIGS = {
+    easy: {
+      id: 'easy',
+      name: 'Easy',
+      minLevels: 3,
+      maxLevels: 5,
+      minNodes: 2,
+      maxNodes: 4
+    },
+    medium: {
+      id: 'medium',
+      name: 'Medium',
+      minLevels: 4,
+      maxLevels: 7,
+      minNodes: 4,
+      maxNodes: 6
+    },
+    hard: {
+      id: 'hard',
+      name: 'Hard',
+      minLevels: 7,
+      maxLevels: 10,
+      minNodes: 6,
+      maxNodes: 12
+    }
+  };
+
   const DHAKA_LOCATION_POOLS = {
     start: [
       { name: 'START: Gulshan North Hub', area: 'Gulshan' },
@@ -62,16 +89,34 @@
       { name: 'START: Uttara Sector 3 Terminal', area: 'Uttara' }
     ],
     level1: [
+      { name: 'Uttara Sector 7 Square', area: 'Uttara' },
+      { name: 'Airport Road Express Link', area: 'Uttara' },
+      { name: 'Kuril Flyover Junction', area: 'Kuril' },
+      { name: 'Nikunja Residential Gate', area: 'Nikunja' },
+      { name: 'Khilkhet Bus Overpass', area: 'Khilkhet' },
+      { name: 'Bashundhara Main Gate', area: 'Bashundhara' },
+      { name: 'Dakshin Khan Crossing', area: 'Dakshin Khan' },
+      { name: 'Pallabi Metro Hub', area: 'Mirpur' },
+      { name: 'Mirpur 12 Bus Terminal', area: 'Mirpur' },
+      { name: 'Diabari Canal Boulevard', area: 'Uttara' },
+      { name: 'Cantonment North Gate', area: 'Cantonment' },
+      { name: 'Baridhara DOHS Link', area: 'Baridhara' }
+    ],
+    level2: [
       { name: 'Mirpur 10 Circle Hub', area: 'Mirpur' },
       { name: 'Banani Commercial Plaza', area: 'Banani' },
       { name: 'Gulshan 2 Avenue', area: 'Gulshan' },
       { name: 'Niketan Lake Crossing', area: 'Niketan' },
       { name: 'Cantonment Rail Gate', area: 'Cantonment' },
-      { name: 'Kuril Flyover Junction', area: 'Kuril' },
-      { name: 'Airport Road Express Link', area: 'Uttara' },
-      { name: 'Mohakhali North Terminal', area: 'Mohakhali' }
+      { name: 'Mohakhali North Terminal', area: 'Mohakhali' },
+      { name: 'Kazipara Central Road', area: 'Mirpur' },
+      { name: 'Shewrapara Metro Link', area: 'Mirpur' },
+      { name: 'Gulshan 1 Circle', area: 'Gulshan' },
+      { name: 'Notun Bazar Embassy Link', area: 'Badda' },
+      { name: 'Kalachandpur Overpass', area: 'Baridhara' },
+      { name: 'ECB Chattar Intersection', area: 'Cantonment' }
     ],
-    level2: [
+    level3: [
       { name: 'Tejgaon Industrial Corridor', area: 'Tejgaon' },
       { name: 'Gabtoli Inter-District Terminal', area: 'Gabtoli' },
       { name: 'Chandrima Udyan Square', area: 'Chandrima' },
@@ -79,9 +124,13 @@
       { name: 'Banasree North Entry', area: 'Banasree' },
       { name: 'Bijoy Sarani Overpass', area: 'Tejgaon' },
       { name: 'Agargaon Administrative Hub', area: 'Agargaon' },
-      { name: 'Khamarbari Central Park', area: 'Farmgate' }
+      { name: 'Khamarbari Central Park', area: 'Farmgate' },
+      { name: 'Shyamoli Cinema Square', area: 'Shyamoli' },
+      { name: 'Kallyanpur Bus Depot', area: 'Kallyanpur' },
+      { name: 'Nabisco Tejgaon Link', area: 'Tejgaon' },
+      { name: 'Merul Badda Canal Crossing', area: 'Badda' }
     ],
-    level3: [
+    level4: [
       { name: 'Farmgate Overbridge Crossing', area: 'Farmgate' },
       { name: 'Mohammadpur Bus Depot', area: 'Mohammadpur' },
       { name: 'Moghbazar Double Flyover', area: 'Moghbazar' },
@@ -89,27 +138,95 @@
       { name: 'Kawran Bazar Trade Center', area: 'Kawran Bazar' },
       { name: 'Panthapath Commercial Circle', area: 'Panthapath' },
       { name: 'Dhanmondi 27 Hub', area: 'Dhanmondi' },
-      { name: 'Rampura Bridge Crossing', area: 'Rampura' }
-    ],
-    level4: [
-      { name: 'Shahbagh Cultural Circle', area: 'Shahbagh' },
-      { name: 'Dhaka New Market Square', area: 'New Market' },
-      { name: 'Motijheel Commercial Core', area: 'Motijheel' },
-      { name: 'Boshila South Bridge Link', area: 'Boshila' },
-      { name: 'Kakrail VIP Intersection', area: 'Kakrail' },
-      { name: 'Paltan Central Square', area: 'Paltan' },
-      { name: 'Elephant Road Market Link', area: 'Dhanmondi' },
-      { name: 'Shantinagar Crossing', area: 'Shantinagar' }
+      { name: 'Rampura Bridge Crossing', area: 'Rampura' },
+      { name: 'Asad Gate Parliament View', area: 'Mohammadpur' },
+      { name: 'College Gate Square', area: 'Mohammadpur' },
+      { name: 'Hatirjheel Lakeside Viaduct', area: 'Hatirjheel' },
+      { name: 'Aftabnagar East Gate', area: 'Rampura' }
     ],
     level5: [
-      { name: 'Sadarghat River Terminal', area: 'Sadarghat' },
+      { name: 'Dhanmondi 15 Lake Hub', area: 'Dhanmondi' },
+      { name: 'Kalabagan Field Crossing', area: 'Kalabagan' },
+      { name: 'Green Road Signal Plaza', area: 'Panthapath' },
+      { name: 'Bangla Motor Intersection', area: 'Bangla Motor' },
+      { name: 'Eskaton Garden Circle', area: 'Eskaton' },
+      { name: 'Mouchak Market Junction', area: 'Malibagh' },
+      { name: 'Siddheswari Circular Road', area: 'Siddheswari' },
+      { name: 'Khilgaon Flyover Loop', area: 'Khilgaon' },
+      { name: 'Shankar Bus Stand', area: 'Dhanmondi' },
+      { name: 'Zigatola Satmasjid Road', area: 'Dhanmondi' },
+      { name: 'Banasree South Connector', area: 'Banasree' },
+      { name: 'Basabo Buddho Mondir Link', area: 'Basabo' }
+    ],
+    level6: [
+      { name: 'Shahbagh Cultural Circle', area: 'Shahbagh' },
+      { name: 'Dhaka New Market Square', area: 'New Market' },
+      { name: 'Boshila South Bridge Link', area: 'Boshila' },
+      { name: 'Kakrail VIP Intersection', area: 'Kakrail' },
+      { name: 'Elephant Road Market Link', area: 'Dhanmondi' },
+      { name: 'Shantinagar Crossing', area: 'Shantinagar' },
+      { name: 'Science Lab Flyover', area: 'Dhanmondi' },
+      { name: 'Kataban Mosque Crossing', area: 'Shahbagh' },
+      { name: 'Ramna Park South Gate', area: 'Ramna' },
+      { name: 'Bailey Road Theatre Hub', area: 'Bailey Road' },
+      { name: 'Rajarbagh Police Lines', area: 'Rajarbagh' },
+      { name: 'Mugda Stadium Highway', area: 'Mugda' }
+    ],
+    level7: [
+      { name: 'Paltan Central Square', area: 'Paltan' },
+      { name: 'Motijheel Commercial Core', area: 'Motijheel' },
+      { name: 'Nilkhet Book Market Hub', area: 'New Market' },
+      { name: 'Azimpur Colony Circle', area: 'Azimpur' },
+      { name: 'TSC University Square', area: 'Dhaka University' },
+      { name: 'High Court Mazar Gate', area: 'Ramna' },
+      { name: 'Press Club Secretariat Link', area: 'Segunbagicha' },
+      { name: 'Fakirapool Water Tower', area: 'Motijheel' },
+      { name: 'Arambagh Bus Terminal', area: 'Motijheel' },
+      { name: 'Kamalapur Rail Plaza', area: 'Kamalapur' },
+      { name: 'Hazaribagh Tannery Link', area: 'Hazaribagh' },
+      { name: 'Maniknagar Highway Cross', area: 'Maniknagar' }
+    ],
+    level8: [
+      { name: 'Dhakeshwari Temple Hub', area: 'Old Dhaka' },
       { name: 'Lalbagh Fort Heritage Gate', area: 'Lalbagh' },
+      { name: 'Chankharpul Flyover Entry', area: 'Old Dhaka' },
+      { name: 'Bakshibazar Medical Square', area: 'Bakshibazar' },
+      { name: 'Gulistan Zero Point', area: 'Gulistan' },
+      { name: 'Dilkusha Banking Avenue', area: 'Motijheel' },
+      { name: 'Tikatuli Flyover Ramp', area: 'Wari' },
+      { name: 'Sayedabad Inter-City Hub', area: 'Sayedabad' },
+      { name: 'Jatrabari Flyover Nexus', area: 'Jatrabari' },
+      { name: 'Kamrangirchar Bridge Link', area: 'Kamrangirchar' },
+      { name: 'Nawabganj Park Crossing', area: 'Lalbagh' },
+      { name: 'Gopibagh Rail Gate', area: 'Gopibagh' }
+    ],
+    level9: [
       { name: 'Chawkbazar Historical Bazaar', area: 'Old Dhaka' },
+      { name: 'Armanitola Historic Plaza', area: 'Old Dhaka' },
+      { name: 'Wari Heritage District', area: 'Wari' },
+      { name: 'Bongshal Bicycle Market', area: 'Old Dhaka' },
+      { name: 'Naya Bazar Trade Square', area: 'Old Dhaka' },
+      { name: 'Tatibazar Gold Hub', area: 'Old Dhaka' },
+      { name: 'Ray Saheb Bazar Circle', area: 'Old Dhaka' },
+      { name: 'Dayaganj Intersection', area: 'Wari' },
+      { name: 'Dholaikhal Engineering Hub', area: 'Old Dhaka' },
+      { name: 'Mitford Hospital Road', area: 'Old Dhaka' },
+      { name: 'Islampur Fabric Bazaar', area: 'Old Dhaka' },
+      { name: 'Sutrapur Community Square', area: 'Sutrapur' }
+    ],
+    level10: [
+      { name: 'Sadarghat River Terminal', area: 'Sadarghat' },
       { name: 'Ahsan Manzil Riverside', area: 'Old Dhaka' },
       { name: 'Postogola Bridge Highway', area: 'Postogola' },
-      { name: 'Dhakeshwari Temple Hub', area: 'Old Dhaka' },
-      { name: 'Armanitola Historic Plaza', area: 'Old Dhaka' },
-      { name: 'Wari Heritage District', area: 'Wari' }
+      { name: 'Badamtoli Fruit Pier', area: 'Sadarghat' },
+      { name: 'Babu Bazar Bridge Approach', area: 'Old Dhaka' },
+      { name: 'Shyambazar Riverfront', area: 'Old Dhaka' },
+      { name: 'Farashganj Heritage Lane', area: 'Old Dhaka' },
+      { name: 'Gandaria Rail Station', area: 'Gandaria' },
+      { name: 'Jurain Rail Gate', area: 'Jurain' },
+      { name: 'Millennium Market Pier', area: 'Sadarghat' },
+      { name: 'Wiseghat Steamer Terminal', area: 'Sadarghat' },
+      { name: 'Hasnabad River Link', area: 'Postogola' }
     ],
     stop: [
       { name: 'STOP: Keraniganj South Hub', area: 'Keraniganj' },
@@ -118,25 +235,48 @@
   };
 
   class DynamicMapGenerator {
-    static generateMap(levelCount = 5) {
+    static randInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    static generateMap(difficultyOrLevels = 'medium') {
       const nodes = [];
       const edges = [];
       const colors = ['red', 'green', 'blue'];
       let edgeCounter = 1;
 
+      // Resolve difficulty and level count
+      let difficultyKey = 'medium';
+      let levelCount = 5;
+      let minNodesPerLevel = 4;
+      let maxNodesPerLevel = 6;
+
+      if (typeof difficultyOrLevels === 'number') {
+        levelCount = Math.max(3, Math.min(10, difficultyOrLevels));
+      } else {
+        difficultyKey = String(difficultyOrLevels || 'medium').toLowerCase();
+        const cfg = MAP_DIFFICULTY_CONFIGS[difficultyKey] || MAP_DIFFICULTY_CONFIGS.medium;
+        difficultyKey = cfg.id;
+        levelCount = DynamicMapGenerator.randInt(cfg.minLevels, cfg.maxLevels);
+        minNodesPerLevel = cfg.minNodes;
+        maxNodesPerLevel = cfg.maxNodes;
+      }
+
       // Helper for shuffling array
       const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
+      const usedNames = new Set();
 
       // 1. START NODE (Level 0)
       const startPool = shuffle(DHAKA_LOCATION_POOLS.start);
       const startLoc = startPool[0];
+      usedNames.add(startLoc.name);
       const startNode = {
         id: 'START',
         name: startLoc.name,
         area: startLoc.area,
         level: 0,
         x: 0.500,
-        y: 0.070,
+        y: 0.055,
         isStart: true,
         isStop: false,
         hasCar: true,
@@ -151,35 +291,50 @@
       // 2. GENERATE NODES FOR LEVELS 1 TO N (Strict Layer Partitioning)
       const levelNodesMap = new Map(); // level -> array of node objects
       const trainStationNodes = []; // 1 rail station per level for continuous curved railway
+      let maxNodesInAnyLevel = 4;
+
+      const levelStepY = 0.86 / (levelCount + 1);
 
       for (let lvl = 1; lvl <= levelCount; lvl++) {
-        // Random 4 or 5 nodes per level
-        const count = Math.random() > 0.45 ? 5 : 4;
-        const pool = shuffle(DHAKA_LOCATION_POOLS['level' + lvl] || DHAKA_LOCATION_POOLS.level1);
+        // Random node count for this level according to map difficulty
+        const count = DynamicMapGenerator.randInt(minNodesPerLevel, maxNodesPerLevel);
+        if (count > maxNodesInAnyLevel) maxNodesInAnyLevel = count;
+
+        const rawPool = DHAKA_LOCATION_POOLS['level' + lvl] || DHAKA_LOCATION_POOLS['level' + ((lvl - 1) % 10 + 1)] || DHAKA_LOCATION_POOLS.level1;
+        const pool = shuffle(rawPool);
         const currentLevelNodes = [];
 
         // Base Y position for this level
-        const baseY = 0.08 + (lvl * 0.82) / (levelCount + 1);
+        const baseY = 0.055 + lvl * levelStepY;
 
-        // Subdivide horizontal space
-        const xMargins = 0.12;
-        const availableWidth = 0.88 - xMargins;
+        // Subdivide horizontal space cleanly based on node count
+        const xMargins = count >= 8 ? 0.055 : (count >= 6 ? 0.075 : 0.11);
+        const availableWidth = 1.0 - 2 * xMargins;
         const segWidth = availableWidth / count;
 
+        const waveMag = Math.min(0.030, levelStepY * 0.21);
+        const jitterMag = Math.min(0.032, levelStepY * 0.22);
+
         for (let i = 0; i < count; i++) {
-          const loc = pool[i % pool.length];
+          let loc = pool[i % pool.length];
+          let locName = loc.name;
+          if (usedNames.has(locName)) {
+            locName = `${loc.name} #${i + 1}`;
+          }
+          usedNames.add(locName);
+
           const segStart = xMargins + i * segWidth;
-          // Organic X with jitter
-          const x = segStart + segWidth * 0.25 + Math.random() * (segWidth * 0.50);
+          // Organic X with jitter inside segment
+          const x = segStart + segWidth * 0.22 + Math.random() * (segWidth * 0.56);
           
-          // Organic non-linear Y staggering (±0.045 with alternating vertical wave)
-          const waveOffset = (i % 2 === 0 ? 0.035 : -0.035);
-          const yJitter = (Math.random() - 0.5) * 0.040;
-          const y = Math.min(0.89, Math.max(0.14, baseY + waveOffset + yJitter));
+          // Organic non-linear Y staggering scaled to level spacing so layers never cross
+          const waveOffset = (i % 2 === 0 ? waveMag : -waveMag);
+          const yJitter = (Math.random() - 0.5) * jitterMag;
+          const y = Math.min(0.91, Math.max(0.10, baseY + waveOffset + yJitter));
 
           const node = {
             id: `L${lvl}_${i + 1}`,
-            name: loc.name,
+            name: locName,
             area: loc.area,
             level: lvl,
             x: parseFloat(x.toFixed(3)),
@@ -196,7 +351,8 @@
           currentLevelNodes.push(node);
         }
 
-        // Apply Spatial Collision Repulsion to ensure no overlapping nodes
+        // Apply Spatial Collision Repulsion proportional to segment width
+        const minNodeDist = Math.min(0.115, segWidth * 0.78);
         for (let a = 0; a < currentLevelNodes.length; a++) {
           for (let b = a + 1; b < currentLevelNodes.length; b++) {
             const nA = currentLevelNodes[a];
@@ -204,10 +360,10 @@
             const dx = nA.x - nB.x;
             const dy = nA.y - nB.y;
             const dist = Math.hypot(dx, dy);
-            if (dist < 0.12) {
-              const push = (0.12 - dist) / 2;
-              nA.x = Math.max(0.10, Math.min(0.90, nA.x + (dx > 0 ? push : -push)));
-              nB.x = Math.max(0.10, Math.min(0.90, nB.x + (dx > 0 ? -push : push)));
+            if (dist < minNodeDist) {
+              const push = (minNodeDist - dist) / 2;
+              nA.x = Math.max(xMargins, Math.min(1 - xMargins, nA.x + (dx > 0 ? push : -push)));
+              nB.x = Math.max(xMargins, Math.min(1 - xMargins, nB.x + (dx > 0 ? -push : push)));
             }
           }
         }
@@ -219,10 +375,10 @@
         // ==========================================
         const shuffledIndices = shuffle(currentLevelNodes.map((_, idx) => idx));
 
-        // Guaranteed Ability Card on at least 1 (often 2) nodes
-        currentLevelNodes[shuffledIndices[0]].hasCard = true;
-        if (currentLevelNodes.length >= 5 && Math.random() > 0.4) {
-          currentLevelNodes[shuffledIndices[1]].hasCard = true;
+        // Guaranteed Ability Card on at least 1 node (and proportional on larger levels)
+        const cardNodesTarget = Math.max(1, Math.floor(count / 3.5));
+        for (let c = 0; c < cardNodesTarget && c < shuffledIndices.length; c++) {
+          currentLevelNodes[shuffledIndices[c]].hasCard = true;
         }
 
         // Guaranteed Train Station (exactly 1 per level)
@@ -250,8 +406,8 @@
           if (idx !== busNodeIdx && Math.random() > 0.60) n.hasBus = true;
         });
 
-        // Hospital (Levels 2, 4, 5)
-        if (lvl === 2 || lvl === 4 || lvl === 5) {
+        // Hospital on periodic levels (every even level and final level)
+        if (lvl % 2 === 0 || lvl === levelCount) {
           const hospIdx = shuffledIndices[3 % currentLevelNodes.length];
           currentLevelNodes[hospIdx].hasHospital = true;
         }
@@ -269,7 +425,7 @@
         area: stopLoc.area,
         level: levelCount + 1,
         x: 0.500,
-        y: 0.940,
+        y: 0.945,
         isStart: false,
         isStop: true,
         hasCar: false,
@@ -359,7 +515,7 @@
         }
       }
 
-      // Lateral connections for final level (Level 5)
+      // Lateral connections for final level
       const finalLevelNodes = [...levelNodesMap.get(levelCount)].sort((a, b) => a.x - b.x);
       for (let i = 0; i < finalLevelNodes.length - 1; i++) {
         edges.push({
@@ -371,7 +527,7 @@
         });
       }
 
-      // D. Final Level -> STOP (Every node in Level 5 connects to STOP)
+      // D. Final Level -> STOP (Every node in final level connects to STOP)
       finalLevelNodes.forEach((fn, idx) => {
         edges.push({
           id: `E_STOP_${edgeCounter++}`,
@@ -398,7 +554,18 @@
         });
       }
 
-      return { nodes, edges };
+      // Compute dynamic virtual board dimensions so dense Hard maps (up to 12 nodes wide & 10 levels deep) never crowd
+      const boardWidth = Math.max(BOARD_CONFIG.width, maxNodesInAnyLevel * 225);
+      const boardHeight = Math.max(BOARD_CONFIG.height, (levelCount + 2) * 245);
+
+      return {
+        nodes,
+        edges,
+        difficulty: difficultyKey,
+        levelCount,
+        boardWidth,
+        boardHeight
+      };
     }
   }
 
@@ -509,22 +676,30 @@
       this.discardPile = [];
       this.winner = null;
       this.awaitingCardSelection = false;
+      this.mapDifficulty = 'medium';
+      this.levelCount = 5;
+      this.boardWidth = BOARD_CONFIG.width;
+      this.boardHeight = BOARD_CONFIG.height;
 
       this.onLogCallback = null;
       this.onCardDrawPrompt = null;
       this.onGameOverCallback = null;
 
-      this.initGraph();
+      this.initGraph('medium');
       this.initDeck();
     }
 
-    initGraph() {
+    initGraph(mapDifficulty = 'medium') {
       this.nodesMap.clear();
-      const { nodes, edges } = DynamicMapGenerator.generateMap(5);
-      this.generatedNodes = nodes;
-      this.generatedEdges = edges;
-      nodes.forEach((n) => this.nodesMap.set(n.id, { ...n }));
-      this.edges = [...edges];
+      const generated = DynamicMapGenerator.generateMap(mapDifficulty);
+      this.generatedNodes = generated.nodes;
+      this.generatedEdges = generated.edges;
+      this.mapDifficulty = generated.difficulty;
+      this.levelCount = generated.levelCount;
+      this.boardWidth = generated.boardWidth;
+      this.boardHeight = generated.boardHeight;
+      generated.nodes.forEach((n) => this.nodesMap.set(n.id, { ...n }));
+      this.edges = [...generated.edges];
       this.blockedColors = new Set();
       this.blockedEdges = new Set();
     }
@@ -553,17 +728,21 @@
       }
     }
 
-    initGame(playerConfigs, customGraph = null, customPriority = null) {
+    initGame(playerConfigs, customGraph = null, customPriority = null, mapDifficulty = 'medium') {
       if (customGraph && customGraph.nodes && customGraph.edges) {
         this.nodesMap.clear();
         this.generatedNodes = customGraph.nodes;
         this.generatedEdges = customGraph.edges;
+        this.mapDifficulty = customGraph.difficulty || mapDifficulty || 'medium';
+        this.levelCount = customGraph.levelCount || (Math.max(...customGraph.nodes.map((n) => n.level || 0)) - 1) || 5;
+        this.boardWidth = customGraph.boardWidth || BOARD_CONFIG.width;
+        this.boardHeight = customGraph.boardHeight || BOARD_CONFIG.height;
         customGraph.nodes.forEach((n) => this.nodesMap.set(n.id, { ...n }));
         this.edges = [...customGraph.edges];
         this.blockedColors = new Set();
         this.blockedEdges = new Set();
       } else {
-        this.initGraph();
+        this.initGraph(mapDifficulty);
       }
       this.initDeck();
       this.players = playerConfigs.map((cfg, idx) => ({
@@ -598,9 +777,10 @@
       this.awaitingCardSelection = false;
       this.phase = 'PLAYING';
 
-      this.log(`🎮 New Game started with ${this.players.length} players!`, 'system');
+      const diffName = (MAP_DIFFICULTY_CONFIGS[this.mapDifficulty]?.name || 'Medium').toUpperCase();
+      this.log(`🎮 New Game started (${diffName} Map: ${this.levelCount} depth levels, ${this.nodesMap.size} total nodes) with ${this.players.length} players!`, 'system');
       this.log(`⭐ Priority Token assigned to ${this.players[this.priorityIndex].name}.`, 'bonus');
-      this.log(`🚦 Round 1: All roads set to MEDIUM traffic. Starting at Gulshan Hub.`, 'traffic');
+      this.log(`🚦 Round 1: All roads set to MEDIUM traffic. Starting at ${this.nodesMap.get('START')?.name || 'START'}.`, 'traffic');
     }
 
     getConnectedEdges(nodeId) {
@@ -1173,12 +1353,17 @@
         const rect = this.canvas.getBoundingClientRect();
         const mx = e.clientX - rect.left;
         const my = e.clientY - rect.top;
-        const newScale = Math.max(0.25, Math.min(4.5, this.scale * factor));
+        const newScale = Math.max(0.15, Math.min(4.5, this.scale * factor));
         this.panX = mx - (mx - this.panX) * (newScale / this.scale);
         this.panY = my - (my - this.panY) * (newScale / this.scale);
         this.scale = newScale;
         this.render();
       }, { passive: false });
+    }
+
+    syncBoardDimensions() {
+      this.boardWidth = this.engine.boardWidth || BOARD_CONFIG.width;
+      this.boardHeight = this.engine.boardHeight || BOARD_CONFIG.height;
     }
 
     resize() {
@@ -1189,6 +1374,7 @@
     }
 
     fitBoardToView() {
+      this.syncBoardDimensions();
       const s = Math.min(this.canvas.width / this.boardWidth, this.canvas.height / this.boardHeight) * 0.95;
       this.scale = s;
       this.panX = (this.canvas.width - this.boardWidth * s) / 2;
@@ -1197,6 +1383,7 @@
     }
 
     centerOnNode(nodeId, playerIdx = null) {
+      this.syncBoardDimensions();
       const node = this.engine.nodesMap.get(nodeId);
       if (!node) return;
       const px = node.x * this.boardWidth;
@@ -1241,6 +1428,7 @@
     }
 
     render() {
+      this.syncBoardDimensions();
       const { ctx, canvas } = this;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.save();
@@ -2130,7 +2318,9 @@
       const roomState = window.K2GMultiplayer.roomState;
       if (!roomState || roomState.players.length < 2) return;
 
-      const { nodes, edges } = DynamicMapGenerator.generateMap(5);
+      const mapDiffSelect = document.getElementById('hostMapDifficultySelect');
+      const mapDifficulty = mapDiffSelect ? mapDiffSelect.value : 'medium';
+      const generatedMap = DynamicMapGenerator.generateMap(mapDifficulty);
       const configs = roomState.players.map((p, idx) => ({
         name: p.name,
         color: PLAYER_COLORS.find(c => c.hex.toLowerCase() === p.color.toLowerCase()) || PLAYER_COLORS[idx % PLAYER_COLORS.length],
@@ -2143,8 +2333,12 @@
       // Broadcast start to room
       window.K2GMultiplayer.sendGameAction('START_GAME', {
         players: configs,
-        nodes: nodes,
-        edges: edges,
+        nodes: generatedMap.nodes,
+        edges: generatedMap.edges,
+        difficulty: generatedMap.difficulty,
+        levelCount: generatedMap.levelCount,
+        boardWidth: generatedMap.boardWidth,
+        boardHeight: generatedMap.boardHeight,
         priorityIndex: priorityIndex
       });
 
@@ -2152,7 +2346,7 @@
       window.K2GMultiplayer.broadcastRoomSync();
       window.K2GMultiplayer.broadcastRoomHeartbeat();
 
-      this.startOnlineGameSession(configs, { nodes, edges }, priorityIndex);
+      this.startOnlineGameSession(configs, generatedMap, priorityIndex);
     }
 
     startOnlineGameSession(configs, graphData, priorityIndex) {
@@ -2167,7 +2361,7 @@
       this.toggleModal('onlineLobbyModal', false);
       this.showHomeScreen(false);
 
-      this.engine.initGame(configs, graphData, priorityIndex);
+      this.engine.initGame(configs, graphData, priorityIndex, graphData?.difficulty || 'medium');
       this.renderer.fitBoardToView();
       this.updateHUD();
 
@@ -2183,7 +2377,18 @@
       switch (actionType) {
         case 'START_GAME': {
           this.isHost = false;
-          this.startOnlineGameSession(actionData.players, { nodes: actionData.nodes, edges: actionData.edges }, actionData.priorityIndex);
+          this.startOnlineGameSession(
+            actionData.players,
+            {
+              nodes: actionData.nodes,
+              edges: actionData.edges,
+              difficulty: actionData.difficulty,
+              levelCount: actionData.levelCount,
+              boardWidth: actionData.boardWidth,
+              boardHeight: actionData.boardHeight
+            },
+            actionData.priorityIndex
+          );
           break;
         }
 
@@ -2373,7 +2578,10 @@
       const speedPanel = document.getElementById('speedChartPanel');
       if (speedPanel) speedPanel.classList.add('collapsed');
 
-      this.engine.initGame(configs);
+      const mapDiffSelect = document.getElementById('mapDifficultySelect');
+      const mapDifficulty = mapDiffSelect ? mapDiffSelect.value : 'medium';
+
+      this.engine.initGame(configs, null, null, mapDifficulty);
       this.renderer.fitBoardToView();
       this.updateHUD();
 
@@ -2522,6 +2730,13 @@
     updateHUD() {
       const active = this.engine.players[this.engine.activePlayerIndex];
       if (!active) return;
+
+      // Update Map Difficulty Badge in Turn Order Bar
+      const mapDiffLabel = document.getElementById('mapDifficultyLabel');
+      if (mapDiffLabel) {
+        const diffMeta = MAP_DIFFICULTY_CONFIGS[this.engine.mapDifficulty] || MAP_DIFFICULTY_CONFIGS.medium;
+        mapDiffLabel.innerText = `Map: ${diffMeta.name} (${this.engine.levelCount || 5} Lvls)`;
+      }
 
       // 1. Update Round & Turn Order Sequence (e.g., Round 1: P1 ➔ P2 ➔ P3 with active indicator)
       document.getElementById('roundNumber').innerText = `Round ${this.engine.round}:`;
@@ -3241,18 +3456,26 @@
     }
 
     handleNodeHover(node) {
-      const tt = document.getElementById('nodeTooltip');
+      const box = document.getElementById('nodeTooltip');
+      const levelPill = document.getElementById('nodeInfoLevelPill');
+      const bodyEl = document.getElementById('nodeInfoBody');
+      if (!box || !bodyEl) return;
+
       if (!node) {
-        tt.style.display = 'none';
+        box.classList.remove('active-hover');
+        if (levelPill) levelPill.innerText = 'Hover over a node';
+        bodyEl.innerHTML = `<div class="node-info-placeholder">Move your cursor over any map node to inspect its stations, level, and facilities here.</div>`;
         return;
       }
 
-      const rect = this.canvas.getBoundingClientRect();
-      const p = this.renderer.getNodePixel(node);
-      const sx = p.x * this.renderer.scale + this.renderer.panX + rect.left;
-      const sy = p.y * this.renderer.scale + this.renderer.panY + rect.top;
+      box.classList.add('active-hover');
+      if (levelPill) {
+        if (node.isStart) levelPill.innerText = 'START (Lvl 0)';
+        else if (node.isStop) levelPill.innerText = `STOP (Lvl ${node.level ?? '-'})`;
+        else levelPill.innerText = `Level ${node.level ?? '-'} • ${node.id}`;
+      }
 
-      let vehicleIcons = [];
+      const vehicleIcons = [];
       if (node.hasBike) vehicleIcons.push('🏍️ Bike');
       if (node.hasCar) vehicleIcons.push('🚗 Car');
       if (node.hasBus) vehicleIcons.push('🚌 Bus');
@@ -3260,16 +3483,19 @@
       if (node.hasHospital) vehicleIcons.push('✚ Hospital');
       if (node.hasCard) vehicleIcons.push('🎴 Ability Card');
 
-      tt.innerHTML = `
-        <div style="font-weight: 700; color: #fbbf24; font-size: 13px; margin-bottom: 3px;">${node.name}</div>
-        <div style="color: #94a3b8; font-size: 11px;">Area: ${node.area} (Level ${node.level ?? '-'})</div>
-        <div style="margin-top: 6px; font-size: 11px; color: #34d399;">
+      const playersHere = this.engine.players.filter((p) => p.currentNodeId === node.id);
+      const playersLine = playersHere.length > 0
+        ? `<div style="margin-top: 5px; font-size: 11px; color: #38bdf8;"><strong>Players Here:</strong> ${playersHere.map((p) => `<span style="color:${p.color.hex}; font-weight:700;">${p.name}</span>`).join(', ')}</div>`
+        : '';
+
+      bodyEl.innerHTML = `
+        <div style="font-weight: 800; color: #fbbf24; font-size: 13px; margin-bottom: 2px;">${node.name}</div>
+        <div style="color: #94a3b8; font-size: 11px;">Area: <strong style="color: #e2e8f0;">${node.area}</strong> (Depth Level ${node.level ?? '-'})</div>
+        <div style="margin-top: 5px; font-size: 11px; color: #34d399; line-height: 1.4;">
           <strong>Stations:</strong> ${vehicleIcons.length > 0 ? vehicleIcons.join(' • ') : '🏃 Walk Only'}
         </div>
+        ${playersLine}
       `;
-      tt.style.left = `${sx + 15}px`;
-      tt.style.top = `${sy - 30}px`;
-      tt.style.display = 'block';
     }
 
     appendLog(entry) {

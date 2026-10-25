@@ -982,19 +982,63 @@ header {
   background: rgba(255, 255, 255, 0.2);
 }
 
-/* Tooltip */
-.node-tooltip {
+/* Fixed Node Information Box (Always anchored at top-right of board viewport) */
+.node-info-fixed-box {
   position: absolute;
-  background: rgba(15, 23, 42, 0.95);
-  backdrop-filter: blur(8px);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 8px 12px;
+  top: 14px;
+  right: 14px;
+  width: 272px;
+  background: rgba(15, 23, 42, 0.94);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  padding: 10px 14px;
   font-size: 11px;
   pointer-events: none;
-  z-index: 50;
-  display: none;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  z-index: 40;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.node-info-fixed-box.active-hover {
+  border-color: var(--accent-gold);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.65), 0 0 14px rgba(245, 158, 11, 0.28);
+}
+
+.node-info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #94a3b8;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 6px;
+  margin-bottom: 7px;
+}
+
+.node-info-level-pill {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  padding: 1px 7px;
+  border-radius: 9999px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.node-info-body {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-height: 48px;
+}
+
+.node-info-placeholder {
+  color: #64748b;
+  font-style: italic;
+  line-height: 1.4;
 }
 
 /* Modal Backdrops & Dialogs */
