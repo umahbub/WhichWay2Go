@@ -10,11 +10,11 @@ export const BOARD_CONFIG = {
 };
 
 export const SPEED_CHART = {
-  run: { id: 'run', name: 'Walk / Run', icon: '🏃', cost: 0, heavy: 3, medium: 3, light: 3, description: 'Free to use. Consistent 3 mph speed.' },
-  bike: { id: 'bike', name: 'Motorcycle / Bike', icon: '🏍️', cost: 3, heavy: 3, medium: 6, light: 9, description: 'Nimble and affordable. Moderate in traffic.' },
-  car: { id: 'car', name: 'Car / Taxi', icon: '🚗', cost: 6, heavy: 9, medium: 12, light: 18, description: 'Fastest on light roads, expensive and traffic-prone.' },
-  bus: { id: 'bus', name: 'Public Bus', icon: '🚌', cost: 3, heavy: 6, medium: 9, light: 12, description: 'Requires bus station. Fixed affordable transit.' },
-  train: { id: 'train', name: 'Train / Railway', icon: '🚂', cost: 9, heavy: 15, medium: 15, light: 15, description: 'Fixed 15 mph, completely bypasses road traffic! Only boards/exits at stations.' }
+  run:   { id: 'run',   name: 'Walk / Run',        icon: '🏃', cost: 0, heavy: 3,  medium: 3,  light: 3,  description: 'Free on any road. Steady +3 pts regardless of traffic.' },
+  bike:  { id: 'bike',  name: 'Motorcycle / Bike', icon: '🏍️', cost: 2, heavy: 8,  medium: 8,  light: 10, description: 'Cost 2. Weaves through Heavy traffic (8 pts)! Keep riding on consecutive road turns.' },
+  bus:   { id: 'bus',   name: 'Public Bus',        icon: '🚌', cost: 3, heavy: 6,  medium: 10, light: 13, description: 'Cost 3. Great value (6/10/13 pts), boards only at Bus Stations (🚌).' },
+  car:   { id: 'car',   name: 'Car / Taxi',        icon: '🚗', cost: 6, heavy: 6,  medium: 12, light: 19, description: 'Cost 6. Fastest on Light roads (19 pts!), stuck in Heavy gridlock (6 pts). Keep riding on consecutive road turns.' },
+  train: { id: 'train', name: 'Express Train',     icon: '🚂', cost: 6, heavy: 16, medium: 16, light: 16, description: 'Cost 6. Fixed 16 pts on Rail Tracks from Train Stations (🚂). Immune to traffic & roadblocks!' }
 };
 
 export const TRAFFIC_STATUS_ROWS = [
@@ -156,14 +156,14 @@ export const BOARD_EDGES = [
 ];
 
 export const ABILITY_CARDS_TEMPLATE = [
-  { id: 'c_nitro', title: 'Nitros Speed Boost', category: 'advantage', type: 'Play Once Any Time', description: 'Double your score points on your next travel move (+100% pts).', effectType: 'DOUBLE_POINTS' },
-  { id: 'c_fuel', title: 'Free Fuel Voucher', category: 'advantage', type: 'Play Once Any Time', description: 'Instantly claim +6 currency units from city reserve.', effectType: 'ADD_CURRENCY_6' },
-  { id: 'c_express', title: 'Green Wave Pass', category: 'advantage', type: 'Play Once Any Time', description: 'Treat your road as Light Traffic regardless of the dice roll.', effectType: 'LIGHT_TRAFFIC_BUFF' },
-  { id: 'c_upgrade', title: 'Vehicle Permit Upgrade', category: 'advantage', type: 'Play Once Any Time', description: 'Choose a free Car or Bike permit to keep permanently in hand.', effectType: 'FREE_VEHICLE' },
-  { id: 'c_roadblock', title: 'Set Roadblock', category: 'attack', type: 'Play Once Any Time', description: 'Select a road color (Red, Green, Blue) to BLOCK for all opponents until next round.', effectType: 'BLOCK_ROAD_COLOR' },
-  { id: 'c_steal', title: 'Road Tax Extortion', category: 'attack', type: 'Play Once Any Time', description: 'Select an opponent to steal 3 currency (or 3 pts) from!', effectType: 'STEAL_FROM_OPPONENT' },
-  { id: 'c_toll', title: 'Citywide Toll Audit', category: 'attack', type: 'Play Right Away', description: 'Mandatory: All opponents must immediately pay 2 currency or lose 3 pts.', effectType: 'TAX_ALL_PLAYERS' },
-  { id: 'c_grant', title: 'Municipal Transit Grant', category: 'advantage', type: 'Play Right Away', description: 'Mandatory: Immediately receive +9 currency from the municipal transit fund.', effectType: 'GRANT_CURRENCY_9' },
-  { id: 'c_speedtrap', title: 'Traffic Police Inspection', category: 'attack', type: 'Play Right Away', description: 'Mandatory: Audit the leading player and fine them 4 points!', effectType: 'PENALIZE_LEADER' },
-  { id: 'c_siren', title: 'VIP Motorcade Pass', category: 'advantage', type: 'Play Once Any Time', description: 'Instantly receive +6 bonus points and free road clearance.', effectType: 'FREE_EXTRA_STEP' }
+  { id: 'c_nitro',     copies: 3, title: 'Nitro Speed Boost',        category: 'advantage', type: 'Play Once Any Time', description: 'Double your score points (2x) on your next travel move!', effectType: 'DOUBLE_POINTS' },
+  { id: 'c_express',   copies: 4, title: 'Green Wave Pass',          category: 'advantage', type: 'Play Once Any Time', description: 'Treat your road on your next move as Light Traffic and bypass any Roadblock.', effectType: 'LIGHT_TRAFFIC_BUFF' },
+  { id: 'c_siren',     copies: 3, title: 'VIP Free Transit Pass',    category: 'advantage', type: 'Play Once Any Time', description: 'Your next vehicle ride (even Car or Train!) costs 0 Currency, bypasses Roadblocks, and grants +3 bonus pts.', effectType: 'FREE_EXTRA_STEP' },
+  { id: 'c_fuel',      copies: 4, title: 'Fuel & Transit Voucher',   category: 'advantage', type: 'Play Once Any Time', description: 'Instantly claim +6 Currency (2 coins) from the city reserve.', effectType: 'ADD_CURRENCY_6' },
+  { id: 'c_upgrade',   copies: 3, title: 'Permanent Vehicle Permit', category: 'advantage', type: 'Play Once Any Time', description: 'Claim a permanent Car (🚗) or Bike (🏍️) permit to board from any node all game, plus +2 Currency rebate!', effectType: 'FREE_VEHICLE' },
+  { id: 'c_roadblock', copies: 3, title: 'Set Roadblock',            category: 'attack',    type: 'Play Once Any Time', description: 'Select a road color (Red, Green, Blue) to BLOCK for all opponents this round (you pass freely).', effectType: 'BLOCK_ROAD_COLOR' },
+  { id: 'c_steal',     copies: 3, title: 'Road Tax Extortion',       category: 'attack',    type: 'Play Once Any Time', description: 'Select an opponent to collect 3 Currency from (or 4 pts if they have under 3 Currency)!', effectType: 'STEAL_FROM_OPPONENT' },
+  { id: 'c_grant',     copies: 2, title: 'Municipal Transit Grant',  category: 'advantage', type: 'Play Right Away',    description: 'Mandatory: Immediately receive +6 Currency and +3 bonus points from the municipal fund!', effectType: 'GRANT_CURRENCY_9' },
+  { id: 'c_speedtrap', copies: 3, title: 'Traffic Police Inspection',category: 'attack',    type: 'Play Right Away',    description: 'Mandatory: Audit the leading opponent for -5 points, and receive +2 informant points!', effectType: 'PENALIZE_LEADER' },
+  { id: 'c_toll',      copies: 2, title: 'Citywide Congestion Tax',  category: 'attack',    type: 'Play Right Away',    description: 'Mandatory: All opponents must pay 2 Currency (or lose 3 pts), and you collect +3 Currency!', effectType: 'TAX_ALL_PLAYERS' }
 ];

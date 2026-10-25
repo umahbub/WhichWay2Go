@@ -25,11 +25,11 @@
   };
 
   const SPEED_CHART = {
-    run: { id: 'run', name: 'Walk / Run', icon: '🏃', cost: 0, heavy: 3, medium: 3, light: 3, description: 'Free to use. Consistent 3 mph speed.' },
-    bike: { id: 'bike', name: 'Motorcycle / Bike', icon: '🏍️', cost: 3, heavy: 3, medium: 6, light: 9, description: 'Nimble and affordable. Moderate in traffic.' },
-    car: { id: 'car', name: 'Car / Taxi', icon: '🚗', cost: 6, heavy: 9, medium: 12, light: 18, description: 'Fastest on light roads, expensive and traffic-prone.' },
-    bus: { id: 'bus', name: 'Public Bus', icon: '🚌', cost: 3, heavy: 6, medium: 9, light: 12, description: 'Requires bus station. Fixed affordable transit.' },
-    train: { id: 'train', name: 'Train / Railway', icon: '🚂', cost: 9, heavy: 15, medium: 15, light: 15, description: 'Fixed 15 mph, completely bypasses road traffic! Only boards/exits at stations.' }
+    run:   { id: 'run',   name: 'Walk / Run',        icon: '🏃', cost: 0, heavy: 3,  medium: 3,  light: 3,  description: 'Free on any road. Steady +3 pts regardless of traffic.' },
+    bike:  { id: 'bike',  name: 'Motorcycle / Bike', icon: '🏍️', cost: 2, heavy: 8,  medium: 8,  light: 10, description: 'Cost 2. Weaves through Heavy traffic (8 pts)! Keep riding on consecutive road turns.' },
+    bus:   { id: 'bus',   name: 'Public Bus',        icon: '🚌', cost: 3, heavy: 6,  medium: 10, light: 13, description: 'Cost 3. Great value (6/10/13 pts), boards only at Bus Stations (🚌).' },
+    car:   { id: 'car',   name: 'Car / Taxi',        icon: '🚗', cost: 6, heavy: 6,  medium: 12, light: 19, description: 'Cost 6. Fastest on Light roads (19 pts!), stuck in Heavy gridlock (6 pts). Keep riding on consecutive road turns.' },
+    train: { id: 'train', name: 'Express Train',     icon: '🚂', cost: 6, heavy: 16, medium: 16, light: 16, description: 'Cost 6. Fixed 16 pts on Rail Tracks from Train Stations (🚂). Immune to traffic & roadblocks!' }
   };
 
   const TRAFFIC_STATUS_ROWS = [
@@ -273,7 +273,7 @@
       };
       const usedNames = new Set();
 
-      // 1. START NODE (Level 0)
+      // 1. START NODE (Level 0 - Departure Terminal: Walk, Bike, and Public Bus available; Car & Train require reaching stations or Permit card)
       const startPool = shuffle(DHAKA_LOCATION_POOLS.start);
       const startLoc = startPool[0];
       usedNames.add(startLoc.name);
@@ -286,7 +286,7 @@
         y: 0.055,
         isStart: true,
         isStop: false,
-        hasCar: true,
+        hasCar: false,
         hasBike: true,
         hasBus: true,
         hasTrain: false,
@@ -297,7 +297,6 @@
 
       // 2. GENERATE NODES FOR LEVELS 1 TO N (Strict Layer Partitioning)
       const levelNodesMap = new Map(); // level -> array of node objects
-      const trainStationNodes = []; // 1 rail station per level for continuous curved railway
       let maxNodesInAnyLevel = 4;
 
       const levelStepY = 0.86 / (levelCount + 1);
@@ -377,45 +376,46 @@
 
         // ==========================================
         // STATION & ABILITY CARD RANDOMIZATION PER LEVEL:
-        // 1. Randomized Ability Card ('A') count & locations per level
+        // 1. Randomized Ability Card ('A') count & locations per level (1 up to ~65% of nodes)
         // 2. Independently randomized vehicle stations (Bike, Car, Bus, Train, Hospital)
         // ==========================================
         const allIndices = currentLevelNodes.map((_, idx) => idx);
 
-        // Randomize how many nodes in this level offer an Ability Card (varies between 1 and ~85% of nodes in the level)
+        // Randomize how many nodes in this level offer an Ability Card
         const minCardNodes = 1;
-        const maxCardNodes = Math.max(2, Math.min(count, Math.ceil(count * 0.85)));
+        const maxCardNodes = Math.max(1, Math.min(count - 1, Math.ceil(count * 0.65)));
         const cardNodesTarget = DynamicMapGenerator.randInt(minCardNodes, maxCardNodes);
         const cardShuffled = shuffle(allIndices);
         for (let c = 0; c < cardNodesTarget && c < cardShuffled.length; c++) {
           currentLevelNodes[cardShuffled[c]].hasCard = true;
         }
 
-        // Guaranteed Train Station (1 random node per level, independent of card nodes)
+        // Train Stations: 1 random node on 2-4 node levels, 2 on 5+ node levels
         const trainShuffled = shuffle(allIndices);
-        const trainNodeIdx = trainShuffled[0];
-        currentLevelNodes[trainNodeIdx].hasTrain = true;
-        trainStationNodes.push(currentLevelNodes[trainNodeIdx]);
+        const trainCount = count >= 5 ? 2 : 1;
+        for (let t = 0; t < trainCount; t++) {
+          currentLevelNodes[trainShuffled[t]].hasTrain = true;
+        }
 
-        // Guaranteed Bike (at least 1 random node, plus 45% chance on others)
+        // Guaranteed Bike (at least 1 random node, plus 40% chance on others)
         const bikeShuffled = shuffle(allIndices);
         currentLevelNodes[bikeShuffled[0]].hasBike = true;
         currentLevelNodes.forEach((n, idx) => {
-          if (idx !== bikeShuffled[0] && Math.random() > 0.55) n.hasBike = true;
+          if (idx !== bikeShuffled[0] && Math.random() < 0.40) n.hasBike = true;
         });
 
-        // Guaranteed Car (at least 1 random node, plus 45% chance on others)
+        // Guaranteed Car (at least 1 random node, plus 35% chance on others)
         const carShuffled = shuffle(allIndices);
         currentLevelNodes[carShuffled[0]].hasCar = true;
         currentLevelNodes.forEach((n, idx) => {
-          if (idx !== carShuffled[0] && Math.random() > 0.55) n.hasCar = true;
+          if (idx !== carShuffled[0] && Math.random() < 0.35) n.hasCar = true;
         });
 
         // Guaranteed Bus Terminal (at least 1 random node, plus 40% chance on others)
         const busShuffled = shuffle(allIndices);
         currentLevelNodes[busShuffled[0]].hasBus = true;
         currentLevelNodes.forEach((n, idx) => {
-          if (idx !== busShuffled[0] && Math.random() > 0.60) n.hasBus = true;
+          if (idx !== busShuffled[0] && Math.random() < 0.40) n.hasBus = true;
         });
 
         // Hospital on periodic levels (every even level and final level, random node)
@@ -442,8 +442,8 @@
         isStop: true,
         hasCar: false,
         hasBike: false,
-        hasBus: false,
-        hasTrain: false,
+        hasBus: true,
+        hasTrain: true,
         hasHospital: false,
         hasCard: false
       };
@@ -515,7 +515,7 @@
 
         // C. Intra-Level Lateral Connections (L <-> L)
         for (let i = 0; i < sortedFrom.length - 1; i++) {
-          if (Math.random() > 0.3) {
+          if (Math.random() > 0.25) {
             edges.push({
               id: `E_LAT_${edgeCounter++}`,
               from: sortedFrom[i].id,
@@ -550,19 +550,36 @@
         });
       });
 
-      // E. Continuous Curved Railway Line (Train stations chained through all levels)
-      for (let r = 0; r < trainStationNodes.length - 1; r++) {
-        const fromStn = trainStationNodes[r];
-        const toStn = trainStationNodes[r + 1];
-        const curveDir = (r % 2 === 0 ? 1 : -1);
-        const curveMag = 45 + Math.floor(Math.random() * 25);
+      // E. Curved Railway Network (Each Train Station in Level L connects to closest Train Station in Level L+1, and final level connects to STOP)
+      for (let lvl = 1; lvl < levelCount; lvl++) {
+        const currTrains = levelNodesMap.get(lvl).filter((n) => n.hasTrain);
+        const nextTrains = levelNodesMap.get(lvl + 1).filter((n) => n.hasTrain);
+        currTrains.forEach((fromStn, idx) => {
+          const toStn = [...nextTrains].sort((a, b) => Math.abs(a.x - fromStn.x) - Math.abs(b.x - fromStn.x))[0];
+          if (toStn) {
+            const curveDir = ((lvl + idx) % 2 === 0 ? 1 : -1);
+            const curveMag = 45 + Math.floor(Math.random() * 25);
+            edges.push({
+              id: `RAIL_${fromStn.id}_${toStn.id}`,
+              from: fromStn.id,
+              to: toStn.id,
+              type: 'rail',
+              color: 'rail',
+              curveOffset: curveDir * curveMag
+            });
+          }
+        });
+      }
+      const lastLevelTrains = levelNodesMap.get(levelCount).filter((n) => n.hasTrain);
+      if (lastLevelTrains.length > 0) {
+        const finalTrain = lastLevelTrains[0];
         edges.push({
-          id: `RAIL_${fromStn.id}_${toStn.id}`,
-          from: fromStn.id,
-          to: toStn.id,
+          id: `RAIL_${finalTrain.id}_STOP`,
+          from: finalTrain.id,
+          to: 'STOP',
           type: 'rail',
           color: 'rail',
-          curveOffset: curveDir * curveMag
+          curveOffset: (levelCount % 2 === 0 ? 1 : -1) * 50
         });
       }
 
@@ -582,16 +599,16 @@
   }
 
   const ABILITY_CARDS_TEMPLATE = [
-    { id: 'c_nitro', title: 'Nitros Speed Boost', category: 'advantage', type: 'Play Once Any Time', description: 'Double your score points on your next travel move (+100% pts).', effectType: 'DOUBLE_POINTS' },
-    { id: 'c_fuel', title: 'Free Fuel Voucher', category: 'advantage', type: 'Play Once Any Time', description: 'Instantly claim +6 currency units from city reserve.', effectType: 'ADD_CURRENCY_6' },
-    { id: 'c_express', title: 'Green Wave Pass', category: 'advantage', type: 'Play Once Any Time', description: 'Treat your road as Light Traffic regardless of the dice roll.', effectType: 'LIGHT_TRAFFIC_BUFF' },
-    { id: 'c_upgrade', title: 'Vehicle Permit Upgrade', category: 'advantage', type: 'Play Once Any Time', description: 'Choose a free Car or Bike permit to keep permanently in hand.', effectType: 'FREE_VEHICLE' },
-    { id: 'c_roadblock', title: 'Set Roadblock', category: 'attack', type: 'Play Once Any Time', description: 'Select a road color (Red, Green, Blue) to BLOCK for all opponents until next round.', effectType: 'BLOCK_ROAD_COLOR' },
-    { id: 'c_steal', title: 'Road Tax Extortion', category: 'attack', type: 'Play Once Any Time', description: 'Select an opponent to steal 3 currency (or 3 pts) from!', effectType: 'STEAL_FROM_OPPONENT' },
-    { id: 'c_toll', title: 'Citywide Toll Audit', category: 'attack', type: 'Play Right Away', description: 'Mandatory: All opponents must immediately pay 2 currency or lose 3 pts.', effectType: 'TAX_ALL_PLAYERS' },
-    { id: 'c_grant', title: 'Municipal Transit Grant', category: 'advantage', type: 'Play Right Away', description: 'Mandatory: Immediately receive +9 currency from the municipal transit fund.', effectType: 'GRANT_CURRENCY_9' },
-    { id: 'c_speedtrap', title: 'Traffic Police Inspection', category: 'attack', type: 'Play Right Away', description: 'Mandatory: Audit the leading player and fine them 4 points!', effectType: 'PENALIZE_LEADER' },
-    { id: 'c_siren', title: 'VIP Motorcade Pass', category: 'advantage', type: 'Play Once Any Time', description: 'Instantly receive +6 bonus points and free road clearance.', effectType: 'FREE_EXTRA_STEP' }
+    { id: 'c_nitro',     copies: 3, title: 'Nitro Speed Boost',        category: 'advantage', type: 'Play Once Any Time', description: 'Double your score points (2x) on your next travel move!', effectType: 'DOUBLE_POINTS' },
+    { id: 'c_express',   copies: 4, title: 'Green Wave Pass',          category: 'advantage', type: 'Play Once Any Time', description: 'Treat your road on your next move as Light Traffic and bypass any Roadblock.', effectType: 'LIGHT_TRAFFIC_BUFF' },
+    { id: 'c_siren',     copies: 3, title: 'VIP Free Transit Pass',    category: 'advantage', type: 'Play Once Any Time', description: 'Your next vehicle ride (even Car or Train!) costs 0 Currency, bypasses Roadblocks, and grants +3 bonus pts.', effectType: 'FREE_EXTRA_STEP' },
+    { id: 'c_fuel',      copies: 4, title: 'Fuel & Transit Voucher',   category: 'advantage', type: 'Play Once Any Time', description: 'Instantly claim +6 Currency (2 coins) from the city reserve.', effectType: 'ADD_CURRENCY_6' },
+    { id: 'c_upgrade',   copies: 3, title: 'Permanent Vehicle Permit', category: 'advantage', type: 'Play Once Any Time', description: 'Claim a permanent Car (🚗) or Bike (🏍️) permit to board from any node all game, plus +2 Currency rebate!', effectType: 'FREE_VEHICLE' },
+    { id: 'c_roadblock', copies: 3, title: 'Set Roadblock',            category: 'attack',    type: 'Play Once Any Time', description: 'Select a road color (Red, Green, Blue) to BLOCK for all opponents this round (you pass freely).', effectType: 'BLOCK_ROAD_COLOR' },
+    { id: 'c_steal',     copies: 3, title: 'Road Tax Extortion',       category: 'attack',    type: 'Play Once Any Time', description: 'Select an opponent to collect 3 Currency from (or 4 pts if they have under 3 Currency)!', effectType: 'STEAL_FROM_OPPONENT' },
+    { id: 'c_grant',     copies: 2, title: 'Municipal Transit Grant',  category: 'advantage', type: 'Play Right Away',    description: 'Mandatory: Immediately receive +6 Currency and +3 bonus points from the municipal fund!', effectType: 'GRANT_CURRENCY_9' },
+    { id: 'c_speedtrap', copies: 3, title: 'Traffic Police Inspection',category: 'attack',    type: 'Play Right Away',    description: 'Mandatory: Audit the leading opponent for -5 points, and receive +2 informant points!', effectType: 'PENALIZE_LEADER' },
+    { id: 'c_toll',      copies: 2, title: 'Citywide Congestion Tax',  category: 'attack',    type: 'Play Right Away',    description: 'Mandatory: All opponents must pay 2 Currency (or lose 3 pts), and you collect +3 Currency!', effectType: 'TAX_ALL_PLAYERS' }
   ];
 
   // ==========================================
@@ -719,11 +736,12 @@
     initDeck() {
       this.deck = [];
       let uid = 1;
-      for (let i = 0; i < 4; i++) {
-        ABILITY_CARDS_TEMPLATE.forEach((c) => {
+      ABILITY_CARDS_TEMPLATE.forEach((c) => {
+        const copies = c.copies || 3;
+        for (let i = 0; i < copies; i++) {
           this.deck.push({ ...c, instanceId: `card_${uid++}` });
-        });
-      }
+        }
+      });
       this.shuffleDeck();
     }
 
@@ -764,17 +782,20 @@
         isAi: cfg.isAi,
         clientId: cfg.clientId || null,
         score: 0,
-        money: 12, // Starting 12 Currency Units
+        money: 12, // Starting 12 Currency Units (4 coins x 3 units)
         currentNodeId: 'START',
         previousNodeId: null,
         currentVehicle: 'run', // Starts on foot ('run', 'bike', 'car', 'bus', 'train')
-        vehicleTokens: new Set(),
+        vehicleTokens: new Set(), // Permanent vehicle permits from Ability Cards
+        visitedCardNodes: new Set(), // Tracks 'A' nodes already claimed by this player
+        visitedHospitals: new Set(), // Tracks Hospital nodes already claimed by this player
         hand: [],
         milestonesClaimed: new Set(),
         hasFinished: false,
         finishRank: null,
         lightTrafficBonus: false,
         doublePointsBonus: false,
+        freeNextRideBonus: false,
         runSpeedBonus: 0,
         bypassRoadblock: false
       }));
@@ -832,7 +853,7 @@
       const moves = [];
 
       for (const edge of connected) {
-        // Enforce max 1 outgoing train line rule: only forward-directed rail edges starting from curr.id
+        // Enforce forward rail track rule: only forward-directed rail edges starting from curr.id
         const isForwardRail = edge.type === 'rail' && edge.from === curr.id;
         const isRoad = edge.type === 'road';
         if (!isForwardRail && !isRoad) continue;
@@ -840,6 +861,12 @@
         const neighborId = this.getAdjacentNodeId(edge, curr.id);
         const neighbor = this.nodesMap.get(neighborId);
         if (!neighbor) continue;
+
+        // Non-backtracking rule: players can move forward (lvl + 1) or laterally on the same level (lvl),
+        // but cannot move backward to an earlier level or immediately reverse to previousNodeId
+        if ((neighbor.level ?? 0) < (curr.level ?? 0) || neighborId === p.previousNodeId) {
+          continue;
+        }
 
         const isEdgeBlocked = this.blockedEdges.has(edge.id);
         const isColorBlocked = edge.type === 'road' && this.blockedColors.has(edge.color);
@@ -856,22 +883,21 @@
           // 1. Walk / Run: Always available for free
           moves.push(this.makeMoveOption(p, neighbor, edge, 'run', 'always'));
 
-          // 2. Bike: Available if node has bike OR player retains a bike
+          // 2. Bike: Available if node has bike station, player is currently riding bike, or player holds a Bike Permit card
           if (curr.hasBike || p.currentVehicle === 'bike' || p.vehicleTokens.has('bike')) {
             const source = (p.currentVehicle === 'bike' || p.vehicleTokens.has('bike')) ? 'retained' : 'station';
             moves.push(this.makeMoveOption(p, neighbor, edge, 'bike', source));
           }
 
-          // 3. Car: Available if node has car OR player retains a car
+          // 3. Car: Available if node has car station, player is currently riding car, or player holds a Car Permit card
           if (curr.hasCar || p.currentVehicle === 'car' || p.vehicleTokens.has('car')) {
             const source = (p.currentVehicle === 'car' || p.vehicleTokens.has('car')) ? 'retained' : 'station';
             moves.push(this.makeMoveOption(p, neighbor, edge, 'car', source));
           }
 
-          // 4. Bus: Available if node has bus terminal OR player is currently riding bus
-          if (curr.hasBus || p.currentVehicle === 'bus') {
-            const source = (p.currentVehicle === 'bus') ? 'retained' : 'station';
-            moves.push(this.makeMoveOption(p, neighbor, edge, 'bus', source));
+          // 4. Public Bus: Strictly requires a Bus Terminal (🚌) at the departure node
+          if (curr.hasBus) {
+            moves.push(this.makeMoveOption(p, neighbor, edge, 'bus', 'station'));
           }
         }
       }
@@ -881,9 +907,9 @@
     makeMoveOption(player, targetNode, edge, vehicleId, source = 'station') {
       const v = SPEED_CHART[vehicleId];
       let traffic = edge.type === 'rail' ? 'none' : (player.lightTrafficBonus ? 'light' : (this.trafficStatus[edge.color] || 'medium'));
-      let points = (vehicleId === 'run' && player.runSpeedBonus > 0) ? player.runSpeedBonus : (v[traffic] || v.medium);
+      let points = (vehicleId === 'run' && player.runSpeedBonus > 0) ? player.runSpeedBonus : (v[traffic] !== undefined ? v[traffic] : v.medium);
       if (player.doublePointsBonus) points *= 2;
-      let cost = v.cost;
+      let cost = player.freeNextRideBonus ? 0 : v.cost;
       let canAfford = player.money >= cost;
 
       return {
@@ -918,38 +944,38 @@
         return false;
       }
 
-      // Deduct cost and set transport mode
+      // Deduct cost and set current active transport mode
       p.money -= cost;
       p.currentVehicle = vehicleId;
-      if (vehicleId === 'bike' || vehicleId === 'car') {
-        p.vehicleTokens.add(vehicleId);
-      }
 
-      this.log(`💰 ${p.name} paid ${cost} currency to ride ${SPEED_CHART[vehicleId].name} (${move.source === 'retained' ? 'retained vehicle' : 'boarded at station'}). (Balance: ${p.money})`, 'action');
+      this.log(`💰 ${p.name} paid ${cost} currency to ride ${SPEED_CHART[vehicleId].name} (${move.source === 'retained' ? 'continuing vehicle/permit' : 'boarded at station'}). (Balance: ${p.money})`, 'action');
 
       // Add points
       p.score += pointsEarned;
       this.log(`⚡ ${p.name} earned +${pointsEarned} pts riding ${SPEED_CHART[vehicleId].name} (${move.traffic} traffic).`, 'score');
 
-      // Clear one-time bonuses
+      // Clear one-time turn bonuses
       p.doublePointsBonus = false;
       p.lightTrafficBonus = false;
+      p.freeNextRideBonus = false;
 
-      // Milestone check: 33, 66, 100
-      [33, 66, 100].forEach((m) => {
+      // Score Milestones: Crossing 35, 70, and 105 pts grants +6 Currency (2 coins)
+      [35, 70, 105].forEach((m) => {
         if (p.score >= m && !p.milestonesClaimed.has(m)) {
           p.milestonesClaimed.add(m);
-          p.money += 9;
-          this.log(`🌟 MILESTONE! ${p.name} reached ${m} pts and earned +9 Currency!`, 'bonus');
+          p.money += 6;
+          this.log(`🌟 MILESTONE! ${p.name} crossed ${m} pts and earned +6 Currency (2 coins)!`, 'bonus');
         }
       });
 
       p.previousNodeId = p.currentNodeId;
       p.currentNodeId = targetNodeId;
 
-      // Hospital node clearance
-      if (target.hasHospital) {
-        this.log(`🏥 ${p.name} visited ${target.name} hospital station.`, 'system');
+      // Hospital / Service Station relief bonus (+3 Currency on first visit to that Hospital)
+      if (target.hasHospital && !p.visitedHospitals.has(targetNodeId)) {
+        p.visitedHospitals.add(targetNodeId);
+        p.money += 3;
+        this.log(`🏥 ${p.name} visited ${target.name} Hospital Station and received +3 Currency transit relief!`, 'bonus');
       }
 
       // Check STOP arrival
@@ -958,10 +984,11 @@
         p.finishRank = this.players.filter((pl) => pl.hasFinished).length;
         if (!this.winner) {
           this.winner = p;
-          this.log(`🏆 FASTEST FINISHER! ${p.name} reached STOP first! (+15 pts bonus)`, 'victory');
+          this.log(`🏆 FASTEST FINISHER! ${p.name} reached STOP first (+12 pts bonus)! Final round in progress — remaining players complete this round!`, 'victory');
           audio.playVictory();
         } else {
-          this.log(`🏁 ${p.name} reached STOP as finisher #${p.finishRank}!`, 'victory');
+          const secondBonusText = p.finishRank === 2 ? ' (+6 pts 2nd Finisher bonus!)' : '';
+          this.log(`🏁 ${p.name} reached STOP as finisher #${p.finishRank}${secondBonusText}!`, 'victory');
         }
         this.checkGameCompletion();
         return true;
@@ -1034,77 +1061,90 @@
       switch (card.effectType) {
         case 'DOUBLE_POINTS':
           p.doublePointsBonus = true;
-          this.log(`⚡ Nitro activated! ${p.name}'s upcoming move will earn 2x DOUBLE score points!`, 'bonus');
+          this.log(`⚡ Nitro activated! ${p.name}'s next travel move will earn 2x DOUBLE score points!`, 'bonus');
           break;
         case 'ADD_CURRENCY_6':
           p.money += 6;
-          this.log(`💰 Fuel voucher redeemed! +6 currency added to ${p.name} (Balance: ${p.money}).`, 'bonus');
+          this.log(`💰 Fuel voucher redeemed! +6 Currency added to ${p.name} (Balance: ${p.money}).`, 'bonus');
           break;
         case 'LIGHT_TRAFFIC_BUFF':
           p.lightTrafficBonus = true;
-          this.log(`🟢 Green Wave pass active! ${p.name}'s upcoming move enjoys Light Traffic speeds!`, 'bonus');
+          p.bypassRoadblock = true;
+          this.log(`🟢 Green Wave pass active! ${p.name}'s next move enjoys Light Traffic speeds and bypasses roadblocks!`, 'bonus');
           break;
         case 'FREE_VEHICLE':
+          p.money += 2;
           if (selectionParam === 'bike') {
             p.vehicleTokens.add('bike');
-            this.log(`🏍️ Free Bike Permit claimed by ${p.name}!`, 'bonus');
+            this.log(`🏍️ Permanent Bike Permit + 2 Currency rebate claimed by ${p.name}!`, 'bonus');
           } else {
             p.vehicleTokens.add('car');
-            this.log(`🚗 Free Car Permit claimed by ${p.name}!`, 'bonus');
+            this.log(`🚗 Permanent Car Permit + 2 Currency rebate claimed by ${p.name}!`, 'bonus');
           }
           break;
-        case 'BLOCK_ROAD_COLOR':
+        case 'BLOCK_ROAD_COLOR': {
           const colToBlock = selectionParam || 'red';
           this.blockedColors.add(colToBlock);
-          this.log(`🛑 Roadblock placed! ${colToBlock.toUpperCase()} roads are BLOCKED for all opponents until next round!`, 'alert');
+          p.bypassRoadblock = true;
+          this.log(`🛑 Roadblock placed! ${colToBlock.toUpperCase()} roads are BLOCKED for all opponents this round!`, 'alert');
           break;
-        case 'STEAL_FROM_OPPONENT':
+        }
+        case 'STEAL_FROM_OPPONENT': {
           const targetOpponent = this.players.find((pl, idx) => idx === selectionParam || pl.id === selectionParam);
           if (targetOpponent) {
             if (targetOpponent.money >= 3) {
               targetOpponent.money -= 3;
               p.money += 3;
-              this.log(`💸 Extortion! ${p.name} took 3 currency from ${targetOpponent.name}!`, 'bonus');
+              this.log(`💸 Road Tax Extortion! ${p.name} collected 3 Currency from ${targetOpponent.name}!`, 'bonus');
             } else {
-              targetOpponent.score = Math.max(0, targetOpponent.score - 3);
-              p.score += 3;
-              this.log(`💸 Extortion! ${p.name} took 3 pts from ${targetOpponent.name}!`, 'bonus');
+              const ptsStolen = Math.min(4, targetOpponent.score);
+              targetOpponent.score -= ptsStolen;
+              p.score += ptsStolen;
+              this.log(`💸 Road Tax Extortion! ${p.name} claimed ${ptsStolen} pts from ${targetOpponent.name}!`, 'bonus');
             }
           }
           break;
+        }
         case 'TAX_ALL_PLAYERS':
+          p.money += 3;
           this.players.forEach((other, idx) => {
             if (idx !== playerIndex && !other.hasFinished) {
               if (other.money >= 2) {
                 other.money -= 2;
-                this.log(`💸 ${other.name} paid 2 currency in toll audit.`, 'action');
+                this.log(`💸 ${other.name} paid 2 Currency in Citywide Congestion Tax.`, 'action');
               } else {
                 other.score = Math.max(0, other.score - 3);
                 this.log(`⚠️ ${other.name} had insufficient funds and lost 3 pts.`, 'alert');
               }
             }
           });
+          this.log(`💰 ${p.name} collected +3 Currency from Citywide Congestion Tax!`, 'bonus');
           break;
         case 'FREE_EXTRA_STEP':
-          p.score += 6;
-          this.log(`🏎️ VIP Motorcade pass! +6 bonus points granted to ${p.name}.`, 'bonus');
+          p.freeNextRideBonus = true;
+          p.bypassRoadblock = true;
+          p.score += 3;
+          this.log(`🏎️ VIP Free Transit Pass! ${p.name} gains +3 bonus pts, bypasses roadblocks, and rides for 0 Currency on this move!`, 'bonus');
           break;
         case 'GRANT_CURRENCY_9':
-          p.money += 9;
-          this.log(`💰 Municipal grant credited! +9 currency added to ${p.name} (Balance: ${p.money}).`, 'bonus');
+          p.money += 6;
+          p.score += 3;
+          this.log(`💰 Municipal Transit Grant! +6 Currency and +3 pts credited to ${p.name} (Balance: ${p.money}).`, 'bonus');
           break;
-        case 'PENALIZE_LEADER':
+        case 'PENALIZE_LEADER': {
           // Find the non-finished player (other than current) with highest score
           const opponentsSorted = this.players.filter((other, idx) => idx !== playerIndex && !other.hasFinished).sort((a, b) => b.score - a.score);
+          p.score += 2;
           if (opponentsSorted.length > 0) {
             const leader = opponentsSorted[0];
-            const penalty = Math.min(4, leader.score);
+            const penalty = Math.min(5, leader.score);
             leader.score -= penalty;
-            this.log(`👮 Police Inspection! Leader ${leader.name} fined ${penalty} points (New score: ${leader.score} pts).`, 'alert');
+            this.log(`👮 Police Inspection! Leader ${leader.name} fined ${penalty} pts, and ${p.name} earned +2 informant pts!`, 'alert');
           } else {
-            this.log(`👮 Police Inspection concluded with no valid targets.`, 'action');
+            this.log(`👮 Police Inspection! ${p.name} earned +2 informant pts.`, 'bonus');
           }
           break;
+        }
       }
       return true;
     }
@@ -1114,8 +1154,18 @@
       if (this.phase === 'GAME_OVER') return;
       this.turnsTakenInRound++;
 
-      const activePlayers = this.players.filter((p) => !p.hasFinished);
-      if (this.turnsTakenInRound >= this.players.length || activePlayers.length <= 1) {
+      const allFinished = this.players.every((p) => p.hasFinished);
+      if (allFinished) {
+        this.endGame();
+        return;
+      }
+
+      if (this.turnsTakenInRound >= this.players.length) {
+        // If any player reached STOP during this round, the round is now complete and the game concludes fairly!
+        if (this.winner) {
+          this.endGame();
+          return;
+        }
         // Entire round finished! Start next round
         this.startNextRound();
       } else {
@@ -1127,12 +1177,20 @@
           attempts++;
         } while (this.players[nextIdx].hasFinished && attempts < this.players.length);
 
+        if (this.players[nextIdx].hasFinished) {
+          this.endGame();
+          return;
+        }
         this.activePlayerIndex = nextIdx;
       }
     }
 
     startNextRound(overridePriority = null, overrideDiceRoll = null) {
       if (this.phase === 'GAME_OVER') return;
+      if (this.winner) {
+        this.endGame();
+        return;
+      }
       this.round++;
       this.turnsTakenInRound = 0;
 
@@ -1168,6 +1226,7 @@
       this.players.forEach((p) => {
         p.lightTrafficBonus = false;
         p.doublePointsBonus = false;
+        p.freeNextRideBonus = false;
         p.runSpeedBonus = 0;
         p.bypassRoadblock = false;
       });
@@ -1181,20 +1240,27 @@
 
     checkGameCompletion() {
       const allFinished = this.players.every((p) => p.hasFinished);
-      if (allFinished || (this.winner && this.players.filter((p) => !p.hasFinished).length <= 1)) {
+      if (allFinished) {
         this.endGame();
       }
     }
 
     endGame() {
+      if (this.phase === 'GAME_OVER') return;
       this.phase = 'GAME_OVER';
       this.log(`🏁 THE RACE HAS FINISHED! Calculating final scores & bonuses...`, 'victory');
 
-      if (this.winner) {
-        this.winner.score += 15;
-        this.winner.fastestBonus = 15;
-      }
       this.players.forEach((p) => {
+        if (p === this.winner) {
+          p.score += 12;
+          p.fastestBonus = 12;
+        } else if (p.hasFinished && p.finishRank === 2) {
+          p.score += 6;
+          p.fastestBonus = 6;
+        } else {
+          p.fastestBonus = 0;
+        }
+
         p.moneyBonus = p.money;
         p.score += p.money; // 1 currency = +1 pt
         if (!p.hasFinished) {
@@ -1215,7 +1281,7 @@
   }
 
   // ==========================================
-  // 4. AI BOT CONTROLLER
+  // 4. STRATEGIC AI BOT CONTROLLER (Monte-Carlo Optimized)
   // ==========================================
   class AIPlayer {
     constructor(engine) {
@@ -1233,43 +1299,64 @@
       while (mandatoryCards.length > 0) {
         const card = mandatoryCards[0];
         let param = null;
-        if (card.effectType === 'BLOCK_ROAD_COLOR') param = 'red';
-        else if (card.effectType === 'STEAL_FROM_OPPONENT') {
-          const targetIdx = this.engine.players.findIndex((pl, idx) => idx !== playerIndex && !pl.hasFinished);
-          param = targetIdx !== -1 ? targetIdx : null;
+        if (card.effectType === 'BLOCK_ROAD_COLOR') {
+          param = Object.keys(this.engine.trafficStatus).find((k) => this.engine.trafficStatus[k] === 'light') || 'red';
+        } else if (card.effectType === 'STEAL_FROM_OPPONENT') {
+          const opps = this.engine.players
+            .map((pl, idx) => ({ pl, idx }))
+            .filter(({ pl, idx }) => idx !== playerIndex && !pl.hasFinished)
+            .sort((a, b) => (b.pl.score + b.pl.money) - (a.pl.score + a.pl.money));
+          param = opps.length > 0 ? opps[0].idx : null;
         } else if (card.effectType === 'FREE_VEHICLE') {
-          param = 'car';
+          param = p.vehicleTokens.has('car') ? 'bike' : 'car';
         }
         this.engine.playCardWithSelection(playerIndex, card.instanceId, param);
         acted = true;
         mandatoryCards = p.hand.filter((c) => c.type === 'Play Right Away' || c.type === 'Play At Once');
       }
 
-      // 2. Optional "Play Once Any Time" beneficial cards
-      const fuelCard = p.hand.find((c) => c.effectType === 'ADD_CURRENCY_6');
-      if (fuelCard) {
-        this.engine.playCardWithSelection(playerIndex, fuelCard.instanceId);
-        acted = true;
-      }
+      if (p.hand.length === 0) return acted;
 
-      const nitroCard = p.hand.find((c) => c.effectType === 'DOUBLE_POINTS');
-      if (nitroCard) {
-        this.engine.playCardWithSelection(playerIndex, nitroCard.instanceId);
-        acted = true;
-      }
-
-      const roadBlockCard = p.hand.find((c) => c.effectType === 'BLOCK_ROAD_COLOR');
-      if (roadBlockCard) {
-        this.engine.playCardWithSelection(playerIndex, roadBlockCard.instanceId, 'red');
-        acted = true;
-      }
-
-      const stealCard = p.hand.find((c) => c.effectType === 'STEAL_FROM_OPPONENT');
-      if (stealCard) {
-        const targetIdx = this.engine.players.findIndex((pl, idx) => idx !== playerIndex && !pl.hasFinished);
-        if (targetIdx !== -1) {
-          this.engine.playCardWithSelection(playerIndex, stealCard.instanceId, targetIdx);
+      // 2. Strategic optional card timing
+      for (const card of [...p.hand]) {
+        if (card.effectType === 'FREE_VEHICLE') {
+          const chosenPermit = p.vehicleTokens.has('car') ? 'bike' : 'car';
+          this.engine.playCardWithSelection(playerIndex, card.instanceId, chosenPermit);
           acted = true;
+        } else if (card.effectType === 'ADD_CURRENCY_6') {
+          if (p.money <= 8) {
+            this.engine.playCardWithSelection(playerIndex, card.instanceId);
+            acted = true;
+          }
+        } else if (card.effectType === 'FREE_EXTRA_STEP') {
+          // VIP Free Transit Pass: use when we want a free expensive ride or when low on cash
+          if (p.money <= 6 || !p.freeNextRideBonus) {
+            this.engine.playCardWithSelection(playerIndex, card.instanceId);
+            acted = true;
+          }
+        } else if (card.effectType === 'STEAL_FROM_OPPONENT') {
+          const opps = this.engine.players
+            .map((pl, idx) => ({ pl, idx }))
+            .filter(({ pl, idx }) => idx !== playerIndex && !pl.hasFinished)
+            .sort((a, b) => b.pl.score - a.pl.score);
+          if (opps.length > 0) {
+            this.engine.playCardWithSelection(playerIndex, card.instanceId, opps[0].idx);
+            acted = true;
+          }
+        } else if (card.effectType === 'BLOCK_ROAD_COLOR') {
+          const lightCol = Object.keys(this.engine.trafficStatus).find((k) => this.engine.trafficStatus[k] === 'light') || 'green';
+          this.engine.playCardWithSelection(playerIndex, card.instanceId, lightCol);
+          acted = true;
+        } else if (card.effectType === 'LIGHT_TRAFFIC_BUFF') {
+          if (p.money >= 2 || p.freeNextRideBonus) {
+            this.engine.playCardWithSelection(playerIndex, card.instanceId);
+            acted = true;
+          }
+        } else if (card.effectType === 'DOUBLE_POINTS') {
+          if (p.money >= 3 || p.freeNextRideBonus) {
+            this.engine.playCardWithSelection(playerIndex, card.instanceId);
+            acted = true;
+          }
         }
       }
       return acted;
@@ -1284,13 +1371,55 @@
       const affordable = valid.filter((m) => m.canAfford);
       const candidates = affordable.length > 0 ? affordable : valid.filter((m) => m.cost === 0);
 
+      const currDist = this.engine.calcDistance(p.currentNodeId, 'STOP');
+      const milestones = [35, 70, 105];
+
       const scored = candidates.map((m) => {
-        const currDist = this.engine.calcDistance(p.currentNodeId, 'STOP');
         const nextDist = this.engine.calcDistance(m.targetNodeId, 'STOP');
-        let score = (currDist - nextDist) * 35 + m.pointsEarned * 2.5 - m.cost * 1.5;
-        if (m.targetNode.isStop) score += 5000;
-        if (m.targetNode.hasCard) score += 15;
-        if (m.source === 'retained') score += 8; // Prefer keeping rented car/bike
+        const distProgress = currDist - nextDist;
+        const netPoints = m.pointsEarned - m.cost;
+
+        // Check if this move crosses a 35/70/105 milestone (+6 Currency)
+        let milestoneBonus = 0;
+        for (const ms of milestones) {
+          if (!p.milestonesClaimed.has(ms) && p.score < ms && p.score + m.pointsEarned >= ms) {
+            milestoneBonus += 7.5;
+          }
+        }
+
+        const moneyAfter = p.money + milestoneBonus - m.cost;
+        const budgetPenalty = (nextDist > 1 && moneyAfter < 2) ? -4.5 : 0;
+
+        // 2-step lookahead on destination node's stations, unvisited cards, hospitals, and outgoing road diversity
+        let lookahead = 0;
+        if (m.targetNode.isStop) lookahead += 500;
+        if (m.targetNode.hasCard && (!p.visitedCardNodes || !p.visitedCardNodes.has(m.targetNodeId)) && nextDist >= 1) {
+          lookahead += 6.5;
+        }
+        if (m.targetNode.hasHospital && (!p.visitedHospitals || !p.visitedHospitals.has(m.targetNodeId))) {
+          lookahead += 3.5;
+        }
+        if (m.targetNode.hasTrain && moneyAfter >= SPEED_CHART.train.cost) {
+          lookahead += 4.0;
+        }
+        if (m.targetNode.hasCar && moneyAfter >= SPEED_CHART.car.cost && p.currentVehicle !== 'car') {
+          lookahead += 3.0;
+        }
+        if (m.targetNode.hasBus && moneyAfter >= SPEED_CHART.bus.cost) {
+          lookahead += 2.0;
+        }
+        if (m.vehicleId === 'car' && nextDist >= 2) lookahead += 2.5;
+        if (m.vehicleId === 'bike' && nextDist >= 2) lookahead += 1.5;
+
+        const outEdges = this.engine.getConnectedEdges(m.targetNodeId).filter((e) => {
+          const nbId = this.engine.getAdjacentNodeId(e, m.targetNodeId);
+          const nb = this.engine.nodesMap.get(nbId);
+          return nb && (nb.level ?? 0) > (m.targetNode.level ?? 0);
+        });
+        const distinctColors = new Set(outEdges.map((e) => e.color)).size;
+        lookahead += distinctColors * 1.2;
+
+        const score = distProgress * 26 + netPoints * 1.35 + milestoneBonus + lookahead + budgetPenalty;
         return { m, score };
       });
 
@@ -1299,7 +1428,25 @@
     }
 
     chooseCardToKeep(playerIndex, cards) {
-      return cards[0]?.instanceId;
+      if (!cards || cards.length === 0) return null;
+      const p = this.engine.players[playerIndex];
+      const rankCard = (c) => {
+        switch (c.effectType) {
+          case 'DOUBLE_POINTS': return 95;
+          case 'GRANT_CURRENCY_9': return 88;
+          case 'FREE_VEHICLE': return (p && p.vehicleTokens.has('car')) ? 45 : 85;
+          case 'FREE_EXTRA_STEP': return 84;
+          case 'LIGHT_TRAFFIC_BUFF': return 80;
+          case 'ADD_CURRENCY_6': return 76;
+          case 'STEAL_FROM_OPPONENT': return 72;
+          case 'BLOCK_ROAD_COLOR': return 68;
+          case 'PENALIZE_LEADER': return 64;
+          case 'TAX_ALL_PLAYERS': return 62;
+          default: return 50;
+        }
+      };
+      const sorted = [...cards].sort((a, b) => rankCard(b) - rankCard(a));
+      return sorted[0]?.instanceId;
     }
   }
 
@@ -2806,6 +2953,7 @@
         let buffTags = [];
         if (active.doublePointsBonus) buffTags.push('⚡ 2x Nitro');
         if (active.lightTrafficBonus) buffTags.push('🟢 Light Traffic');
+        if (active.freeNextRideBonus) buffTags.push('🆓 Free Ride');
         const buffStr = buffTags.length > 0 ? ` [${buffTags.join(', ')}]` : '';
 
         const isMyTurn = !this.isOnlineGame || (this.engine.activePlayerIndex === this.localPlayerIndex);
@@ -3230,8 +3378,12 @@
 
       const targetNode = this.engine.nodesMap.get(move.targetNodeId);
 
-      // If the player landed on an Ability Card ('A') node, PAUSE all subsequent turns until they pick their card!
-      if (targetNode && targetNode.hasCard && !targetNode.isStop) {
+      // If the player landed on an unvisited Ability Card ('A') node, PAUSE all subsequent turns until they pick their card!
+      const alreadyClaimedCardHere = activePlayer.visitedCardNodes && activePlayer.visitedCardNodes.has(move.targetNodeId);
+      if (targetNode && targetNode.hasCard && !targetNode.isStop && !alreadyClaimedCardHere) {
+        if (activePlayer.visitedCardNodes) {
+          activePlayer.visitedCardNodes.add(move.targetNodeId);
+        }
         audio.playCardDraw();
         this.engine.awaitingCardSelection = true;
         this.updateHUD();

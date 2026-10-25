@@ -45,13 +45,13 @@
    - Play mandatory cards (*Play Right Away / Play At Once*) or optional cards (*Play Once Any Time*).
 2. **Travel Round**:
    - Priority token holder moves first.
-   - Player must move at least 1 node along a connected valid route.
+   - Player must move forward or laterally along a connected valid route (no backward movement toward START).
    - Choose transport:
-     - **Walk/Run**: 0 cost. Earns 3 pts.
-     - **Bike**: 3 cost. Earns 3 (Heavy) / 6 (Med) / 9 (Light) pts.
-     - **Car**: 6 cost. Earns 9 (Heavy) / 12 (Med) / 18 (Light) pts.
-     - **Bus**: 3 cost. Earns 6 (Heavy) / 9 (Med) / 12 (Light) pts. Only board/exit at Bus Stations.
-     - **Train**: 9 cost. Earns 15 pts (fixed). Only board/exit at Train Stations. Immune to traffic.
+     - **Walk/Run**: 0 cost. Earns 3 pts (all traffic). Always available.
+     - **Bike**: 2 cost. Earns 8 (Heavy) / 8 (Med) / 10 (Light) pts. Board at Bike Station (including START); stays with you on consecutive road turns.
+     - **Bus**: 3 cost. Earns 6 (Heavy) / 10 (Med) / 13 (Light) pts. Board at any Bus Station (including START).
+     - **Car**: 6 cost. Earns 6 (Heavy) / 12 (Med) / 19 (Light) pts. Board at a Car Station or via Vehicle Permit; stays with you on consecutive road turns.
+     - **Train**: 6 cost. Earns 16 pts (fixed). Board at a Train Station along a Rail Track. Immune to traffic & roadblocks.
 3. **Traffic System**:
    - From Round 2+, roll 6-sided dice to determine traffic row on the Traffic Status Card:
      - Row 1: Blue=Heavy, Red=Med, Green=Light
@@ -60,15 +60,16 @@
      - Row 4: Green=Heavy, Blue=Med, Red=Light
      - Row 5: Red=Heavy, Green=Med, Blue=Light
      - Row 6: Red=Heavy, Blue=Med, Green=Light
-4. **Ability Cards**:
-   - Landing on 'A' node: Draw 2 cards, keep 1, discard 1.
+4. **Ability Cards & Nodes**:
+   - Landing on an `'A'` node (once per `'A'` node per player): Draw 2 cards, keep 1, discard 1.
+   - Landing on a Hospital (`+`) node grants +3 Currency relief bonus.
    - Cards include personal buffs, personal penalties, opponent attacks, and global traffic/road manipulation.
 5. **Score & End Game**:
-   - Points milestone bonus: Crossing 33, 66, 100 points grants +3 coins (+9 currency).
-   - Game concludes when a player reaches **STOP**.
-   - **Fastest Player Bonus**: +15 pts.
+   - Points milestone bonus: Crossing 35, 70, 105 points grants +2 coins (+6 currency).
+   - **Equal-Turn Final Round**: When the first player reaches **STOP**, all remaining players finish the current Travel Round so everyone gets an equal number of turns.
+   - **Fastest Player Bonuses**: 1st player to reach STOP earns **+12 pts**; 2nd player to reach STOP in the final round earns **+6 pts**.
    - **Remaining Money Bonus**: 1 currency = +1 pt.
-   - **Distance Penalty**: Remaining players lose 6 pts per node distance to STOP.
+   - **Distance Penalty**: Remaining players lose 5 pts per node distance to STOP.
    - Highest total score wins!
 
 ---

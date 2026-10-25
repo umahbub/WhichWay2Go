@@ -194,23 +194,23 @@
         <div class="rules-summary-grid">
           <div class="rules-step">
             <span class="step-num">1</span>
-            <strong>Opening Draft</strong>
-            <span>Draw 2 Ability Cards and keep 1 secretly in your hand before traveling.</span>
+            <strong>Opening Draft &amp; Cards</strong>
+            <span>Draft 1 of 2 secret Ability Cards at start, and draw more on <strong>🎴A</strong> nodes (1 draw per node) or visit <strong>✚</strong> Hospitals (+3 Currency).</span>
           </div>
           <div class="rules-step">
             <span class="step-num">2</span>
-            <strong>Pick Your Vehicle</strong>
-            <span>🏃 Walk (Free, 3 pts) • 🏍️ Bike (3 cost) • 🚗 Car (6 cost) • 🚌 Bus (3 cost) • 🚂 Train (9 cost, 15 pts fixed).</span>
+            <strong>Pick the Right Vehicle</strong>
+            <span>🏃 Walk (Free: 3 pts) • 🏍️ Bike (2 cost: 8/8/10 pts) • 🚌 Bus (3 cost: 6/10/13 pts) • 🚗 Car (6 cost: 6/12/19 pts) • 🚂 Train (6 cost: 16 pts).</span>
           </div>
           <div class="rules-step">
             <span class="step-num">3</span>
-            <strong>Dynamic Traffic</strong>
-            <span>From Round 2+, dice rolls set Red, Green, and Blue roads to Heavy, Medium, or Light traffic.</span>
+            <strong>Beat Dhaka Traffic</strong>
+            <span>Bikes weave through Heavy traffic (8 pts), Buses excel at stations, Cars dominate Light roads (19 pts), and Trains ignore traffic!</span>
           </div>
           <div class="rules-step">
             <span class="step-num">4</span>
-            <strong>First to STOP Wins Bonus</strong>
-            <span>Reaching STOP grants +15 pts. Remaining money converts 1:1 into points; remaining distance penalizes 6 pts/stop!</span>
+            <strong>Fair Final Round</strong>
+            <span>When a player hits STOP (+12 pts 1st / +6 pts 2nd), the round finishes! Leftover money = +1 pt/unit; un-finished lose 6 pts/stop.</span>
           </div>
         </div>
       </div>
@@ -332,41 +332,41 @@
 
         <!-- 2. Transportation Modes -->
         <div class="legend-section">
-          <div class="legend-section-title">🚗 Transportation & Costs</div>
+          <div class="legend-section-title">🚗 Transportation &amp; Costs (Hvy / Med / Lgt)</div>
           <div class="legend-grid">
             <div class="transport-legend-badge">
               <span class="t-icon">🏃</span>
               <div class="t-info">
                 <strong>Walk / Run</strong>
-                <span>Cost: Free (0) • 3 pts</span>
+                <span>Cost: Free (0) • 3/3/3 pts</span>
               </div>
             </div>
             <div class="transport-legend-badge">
               <span class="t-icon">🏍️</span>
               <div class="t-info">
                 <strong>Bike</strong>
-                <span>Cost: 3 • 3/6/9 pts</span>
-              </div>
-            </div>
-            <div class="transport-legend-badge">
-              <span class="t-icon">🚗</span>
-              <div class="t-info">
-                <strong>Car / Taxi</strong>
-                <span>Cost: 6 • 9/12/18 pts</span>
+                <span>Cost: 2 • 8/8/10 pts</span>
               </div>
             </div>
             <div class="transport-legend-badge">
               <span class="t-icon">🚌</span>
               <div class="t-info">
                 <strong>Public Bus</strong>
-                <span>Cost: 3 • 6/9/12 pts</span>
+                <span>Cost: 3 • 6/10/13 pts</span>
+              </div>
+            </div>
+            <div class="transport-legend-badge">
+              <span class="t-icon">🚗</span>
+              <div class="t-info">
+                <strong>Car / Taxi</strong>
+                <span>Cost: 6 • 6/12/19 pts</span>
               </div>
             </div>
             <div class="transport-legend-badge" style="grid-column: span 2;">
               <span class="t-icon">🚂</span>
               <div class="t-info">
                 <strong>Express Train</strong>
-                <span>Cost: 9 • Fixed 15 pts (Stations only)</span>
+                <span>Cost: 6 • Fixed 16 pts (Rail Stations only)</span>
               </div>
             </div>
           </div>
@@ -377,7 +377,7 @@
           <div class="legend-section-title">📍 Node Station Symbols</div>
           <div class="node-symbols-row">
             <span class="node-sym-pill"><strong style="color: #ef4444;">A</strong> Ability Card</span>
-            <span class="node-sym-pill"><strong style="color: #ef4444;">✚</strong> Hospital</span>
+            <span class="node-sym-pill"><strong style="color: #ef4444;">✚</strong> Hospital (+3💰)</span>
             <span class="node-sym-pill"><strong>🏍️ 🚗 🚌 🚂</strong> Vehicle Stations</span>
           </div>
         </div>
@@ -386,7 +386,7 @@
       <!-- Speed & Cost Chart Overlay Panel (Collapsed by default) -->
       <div class="speed-chart-panel collapsed" id="speedChartPanel">
         <div class="legend-header">
-          <span class="legend-title">⚡ SPEED & COST CHART</span>
+          <span class="legend-title">⚡ SPEED &amp; COST CHART</span>
           <button class="legend-close-btn" id="closeSpeedChartBtn">✕</button>
         </div>
         <table class="speed-table">
@@ -409,38 +409,39 @@
             </tr>
             <tr>
               <td><strong>🏍️ Bike</strong></td>
-              <td>3</td>
-              <td>3 pts</td>
-              <td>6 pts</td>
-              <td>9 pts</td>
-            </tr>
-            <tr>
-              <td><strong>🚗 Car / Taxi</strong></td>
-              <td>6</td>
-              <td>9 pts</td>
-              <td>12 pts</td>
-              <td>18 pts</td>
+              <td>2</td>
+              <td>8 pts</td>
+              <td>8 pts</td>
+              <td>10 pts</td>
             </tr>
             <tr>
               <td><strong>🚌 Public Bus</strong></td>
               <td>3</td>
               <td>6 pts</td>
-              <td>9 pts</td>
+              <td>10 pts</td>
+              <td>13 pts</td>
+            </tr>
+            <tr>
+              <td><strong>🚗 Car / Taxi</strong></td>
+              <td>6</td>
+              <td>6 pts</td>
               <td>12 pts</td>
+              <td>19 pts</td>
             </tr>
             <tr>
               <td><strong>🚂 Express Train</strong></td>
-              <td>9</td>
-              <td>15 pts</td>
-              <td>15 pts</td>
-              <td>15 pts</td>
+              <td>6</td>
+              <td>16 pts</td>
+              <td>16 pts</td>
+              <td>16 pts</td>
             </tr>
           </tbody>
         </table>
         <div class="speed-panel-footer">
-          <p>• <strong>Express Train:</strong> Runs exclusively on rail tracks. Immune to road traffic.</p>
-          <p>• <strong>Public Bus:</strong> Only boards/alights at nodes with bus terminal icons.</p>
-          <p>• <strong>Milestone Bonuses:</strong> Crossing 33, 66, and 100 points grants +9 currency (3 coins).</p>
+          <p>• <strong>🏍️ Bike &amp; 🚗 Car:</strong> Board at a station (or use a Permit card) and keep riding on consecutive road turns!</p>
+          <p>• <strong>🚌 Public Bus:</strong> Boards only at nodes with a Bus Station (🚌) icon.</p>
+          <p>• <strong>🚂 Express Train:</strong> Runs on curved Rail Tracks from Train Stations (🚂). Immune to road traffic &amp; roadblocks!</p>
+          <p>• <strong>🌟 Milestones &amp; ✚ Hospitals:</strong> Crossing 35, 70, 105 pts grants +6 Currency; visiting a Hospital grants +3 Currency.</p>
         </div>
       </div>
 
@@ -644,32 +645,33 @@
         <button class="btn-nav" id="closeRulesBtn">✕ Close</button>
       </div>
       <div style="font-size: 13px; line-height: 1.6; color: #cbd5e1; display: flex; flex-direction: column; gap: 12px;">
-        <p><strong>Goal:</strong> Travel from <strong>START</strong> to <strong>STOP</strong> across Dhaka with maximum points and leftover currency.</p>
+        <p><strong>Goal:</strong> Navigate from <strong>START</strong> to <strong>STOP</strong> across Dhaka with the highest total score (combining travel points, finisher bonus, and leftover currency).</p>
         
-        <h4 style="color: #fbbf24;">🎁 Opening Ability Card Draft</h4>
-        <p>At the start of the game, each player draws <strong>2 random Ability Cards</strong> and chooses <strong>1 to keep secretly</strong> in hand before traveling begins.</p>
+        <h4 style="color: #fbbf24;">🎁 Setup &amp; Opening Ability Card Draft</h4>
+        <p>Every player starts at <strong>START</strong> with <strong>12 Currency</strong> (4 coins) and draws <strong>2 random Ability Cards</strong>, choosing <strong>1 to keep secretly</strong> before Round 1 begins.</p>
 
-        <h4 style="color: #fbbf24;">🚦 Traffic System</h4>
-        <p>In Round 1, all roads are Medium traffic. From Round 2 onward, a 6-sided dice roll sets which road colors (Red, Green, Blue) are Heavy, Medium, and Light.</p>
+        <h4 style="color: #fbbf24;">🚦 Traffic &amp; Movement Rules</h4>
+        <p>In Round 1, all roads have Medium traffic. From Round 2+, a 6-sided dice roll assigns Heavy, Medium, and Light traffic to Red, Green, and Blue roads. You may move forward to the next depth level or laterally across the current level (no backward moves or immediate ping-ponging).</p>
 
-        <h4 style="color: #fbbf24;">🚗 Vehicles & Speed Chart</h4>
+        <h4 style="color: #fbbf24;">🚗 Vehicles, Costs &amp; Points (Heavy / Medium / Light)</h4>
         <ul>
-          <li><strong>🏃 Walk/Run:</strong> Free (0 cost). Always earns 3 pts.</li>
-          <li><strong>🏍️ Bike:</strong> Cost 3. Speed: 3 (Heavy), 6 (Med), 9 (Light).</li>
-          <li><strong>🚗 Car:</strong> Cost 6. Speed: 9 (Heavy), 12 (Med), 18 (Light).</li>
-          <li><strong>🚌 Bus:</strong> Cost 3. Speed: 6 (Heavy), 9 (Med), 12 (Light). Only boards/alights at Bus Stations.</li>
-          <li><strong>🚂 Train:</strong> Cost 9. Fixed 15 pts speed! Runs exclusively on Railroad tracks and ignores traffic completely.</li>
+          <li><strong>🏃 Walk / Run (Cost 0):</strong> Always earns <strong>3 pts</strong> on any road.</li>
+          <li><strong>🏍️ Bike (Cost 2):</strong> Earns <strong>8 (Heavy) • 8 (Med) • 10 (Light) pts</strong>. Weaves through Heavy traffic! Once boarded at a Bike Station (🏍️), keep riding on consecutive road turns.</li>
+          <li><strong>🚌 Public Bus (Cost 3):</strong> Earns <strong>6 (Heavy) • 10 (Med) • 13 (Light) pts</strong>. Boards only at nodes with a Bus Station (🚌).</li>
+          <li><strong>🚗 Car / Taxi (Cost 6):</strong> Earns <strong>6 (Heavy) • 12 (Med) • 19 (Light) pts</strong>. Fastest on Light highways, stuck in Heavy gridlock! Once boarded at a Car Station (🚗), keep riding on consecutive road turns.</li>
+          <li><strong>🚂 Express Train (Cost 6):</strong> Earns <strong>Fixed 16 pts</strong> on curved Railroad tracks from Train Stations (🚂). Completely immune to road traffic and roadblocks!</li>
         </ul>
 
-        <h4 style="color: #fbbf24;">🎴 Ability Cards</h4>
-        <p>Landing on an 'A' node lets you draw 2 cards: keep 1, discard 1. Cards give speed boosts, extra money, roadblock controls, or steal tokens and points from opponents.</p>
+        <h4 style="color: #fbbf24;">🎴 Ability Cards &amp; ✚ Hospital Stations</h4>
+        <p>Landing on an <strong>'A'</strong> node for the first time lets you draw 2 cards (keep 1, discard 1). Visiting a <strong>✚ Hospital</strong> station for the first time grants <strong>+3 Currency</strong> transit relief.</p>
 
-        <h4 style="color: #fbbf24;">🏁 Scoring & Endgame</h4>
+        <h4 style="color: #fbbf24;">🏁 Milestones, Fair Final Round &amp; Scoring</h4>
         <ul>
-          <li>Points milestones: Crossing 33, 66, and 100 pts awards <strong>+9 currency (3 coins)</strong>.</li>
-          <li><strong>Fastest Player Bonus:</strong> First to reach STOP gets <strong>+15 points</strong>.</li>
-          <li><strong>Money Bonus:</strong> 1 leftover currency = <strong>+1 point</strong>.</li>
-          <li><strong>Distance Penalty:</strong> Remaining players lose <strong>6 points per stop</strong> from STOP.</li>
+          <li><strong>Score Milestones:</strong> Crossing <strong>35, 70, and 105 pts</strong> awards <strong>+6 Currency (2 coins)</strong>.</li>
+          <li><strong>Equal-Turn Final Round:</strong> When the first player reaches <strong>STOP</strong>, the current round finishes so all players get equal turns!</li>
+          <li><strong>Finisher Bonuses:</strong> 1st to reach STOP gets <strong>+12 pts</strong>; 2nd to reach STOP gets <strong>+6 pts</strong>.</li>
+          <li><strong>Leftover Currency Bonus:</strong> 1 remaining Currency = <strong>+1 point</strong>.</li>
+          <li><strong>Distance Penalty:</strong> Players who have not reached STOP lose <strong>6 points per node distance</strong> from STOP.</li>
         </ul>
       </div>
     </div>
