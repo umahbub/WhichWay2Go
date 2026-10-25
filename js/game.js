@@ -262,8 +262,15 @@
         maxNodesPerLevel = cfg.maxNodes;
       }
 
-      // Helper for shuffling array
-      const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
+      // Unbiased Fisher-Yates shuffle helper
+      const shuffle = (arr) => {
+        const copy = [...arr];
+        for (let i = copy.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+      };
       const usedNames = new Set();
 
       // 1. START NODE (Level 0)
@@ -369,47 +376,52 @@
         }
 
         // ==========================================
-        // MANDATORY RULE ENFORCEMENT PER LEVEL:
-        // 1. At least 1 Ability Card node ('A')
-        // 2. At least 1 of each vehicle (Bike, Car, Bus, Train)
+        // STATION & ABILITY CARD RANDOMIZATION PER LEVEL:
+        // 1. Randomized Ability Card ('A') count & locations per level
+        // 2. Independently randomized vehicle stations (Bike, Car, Bus, Train, Hospital)
         // ==========================================
-        const shuffledIndices = shuffle(currentLevelNodes.map((_, idx) => idx));
+        const allIndices = currentLevelNodes.map((_, idx) => idx);
 
-        // Guaranteed Ability Card on at least 1 node (and proportional on larger levels)
-        const cardNodesTarget = Math.max(1, Math.floor(count / 3.5));
-        for (let c = 0; c < cardNodesTarget && c < shuffledIndices.length; c++) {
-          currentLevelNodes[shuffledIndices[c]].hasCard = true;
+        // Randomize how many nodes in this level offer an Ability Card (varies between 1 and ~85% of nodes in the level)
+        const minCardNodes = 1;
+        const maxCardNodes = Math.max(2, Math.min(count, Math.ceil(count * 0.85)));
+        const cardNodesTarget = DynamicMapGenerator.randInt(minCardNodes, maxCardNodes);
+        const cardShuffled = shuffle(allIndices);
+        for (let c = 0; c < cardNodesTarget && c < cardShuffled.length; c++) {
+          currentLevelNodes[cardShuffled[c]].hasCard = true;
         }
 
-        // Guaranteed Train Station (exactly 1 per level)
-        const trainNodeIdx = shuffledIndices[currentLevelNodes.length - 1];
+        // Guaranteed Train Station (1 random node per level, independent of card nodes)
+        const trainShuffled = shuffle(allIndices);
+        const trainNodeIdx = trainShuffled[0];
         currentLevelNodes[trainNodeIdx].hasTrain = true;
         trainStationNodes.push(currentLevelNodes[trainNodeIdx]);
 
-        // Guaranteed Bike (at least 1, plus 45% chance on others)
-        currentLevelNodes[shuffledIndices[0]].hasBike = true;
+        // Guaranteed Bike (at least 1 random node, plus 45% chance on others)
+        const bikeShuffled = shuffle(allIndices);
+        currentLevelNodes[bikeShuffled[0]].hasBike = true;
         currentLevelNodes.forEach((n, idx) => {
-          if (idx !== shuffledIndices[0] && Math.random() > 0.55) n.hasBike = true;
+          if (idx !== bikeShuffled[0] && Math.random() > 0.55) n.hasBike = true;
         });
 
-        // Guaranteed Car (at least 1, plus 45% chance on others)
-        const carNodeIdx = shuffledIndices[1 % currentLevelNodes.length];
-        currentLevelNodes[carNodeIdx].hasCar = true;
+        // Guaranteed Car (at least 1 random node, plus 45% chance on others)
+        const carShuffled = shuffle(allIndices);
+        currentLevelNodes[carShuffled[0]].hasCar = true;
         currentLevelNodes.forEach((n, idx) => {
-          if (idx !== carNodeIdx && Math.random() > 0.55) n.hasCar = true;
+          if (idx !== carShuffled[0] && Math.random() > 0.55) n.hasCar = true;
         });
 
-        // Guaranteed Bus Terminal (at least 1, plus 40% chance on others)
-        const busNodeIdx = shuffledIndices[2 % currentLevelNodes.length];
-        currentLevelNodes[busNodeIdx].hasBus = true;
+        // Guaranteed Bus Terminal (at least 1 random node, plus 40% chance on others)
+        const busShuffled = shuffle(allIndices);
+        currentLevelNodes[busShuffled[0]].hasBus = true;
         currentLevelNodes.forEach((n, idx) => {
-          if (idx !== busNodeIdx && Math.random() > 0.60) n.hasBus = true;
+          if (idx !== busShuffled[0] && Math.random() > 0.60) n.hasBus = true;
         });
 
-        // Hospital on periodic levels (every even level and final level)
+        // Hospital on periodic levels (every even level and final level, random node)
         if (lvl % 2 === 0 || lvl === levelCount) {
-          const hospIdx = shuffledIndices[3 % currentLevelNodes.length];
-          currentLevelNodes[hospIdx].hasHospital = true;
+          const hospShuffled = shuffle(allIndices);
+          currentLevelNodes[hospShuffled[0]].hasHospital = true;
         }
 
         levelNodesMap.set(lvl, currentLevelNodes);
