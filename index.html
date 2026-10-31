@@ -58,7 +58,6 @@
         <div class="home-quick-actions">
           <button class="home-quick-btn" id="homeRulesBtn">📖 Rule Book & Guide</button>
           <button class="home-quick-btn" id="homeSpeedChartBtn">⚡ Speed & Cost Chart</button>
-          <button class="home-quick-btn" id="homeGithubGuideBtn">🚀 Publish on GitHub Pages</button>
           <button class="home-quick-btn resume-btn" id="homeResumeGameBtn" style="display:none;">▶️ Resume Current Game</button>
         </div>
       </div>
@@ -742,52 +741,6 @@
         <button class="btn-primary" id="lobbyStartGameBtn" style="padding: 12px 24px; font-size: 15px;" disabled>
           ⏳ Waiting for Host to Start...
         </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 8. GitHub Pages Online Publishing Guide Modal -->
-  <div class="modal-backdrop" id="githubPagesModal">
-    <div class="modal-dialog" style="max-width: 720px;">
-      <div class="modal-header">
-        <h2>🚀 Publish Online via GitHub Pages</h2>
-        <button class="btn-nav" id="closeGithubGuideBtn">✕ Close</button>
-      </div>
-      <div class="github-guide-content">
-        <p>
-          <strong>Yes!</strong> You can publish this entire game completely free on GitHub Pages. Because Which Way to Go! uses 100% client-side HTML5 Canvas, Web Audio API, and serverless WebSocket rooms, it requires <strong>zero backend hosting cost</strong>!
-        </p>
-
-        <div class="guide-step-card">
-          <div class="guide-step-header">
-            <span>Step 1: Push Code to your GitHub Repository</span>
-          </div>
-          <p>Commit all the files and push them to your repository (<code>umahbub/WhichWay2Go</code>):</p>
-          <div class="guide-code-block">git add .<br>git commit -m "Launch Which Way to Go Online Multiplayer"<br>git push origin main</div>
-        </div>
-
-        <div class="guide-step-card">
-          <div class="guide-step-header">
-            <span>Step 2: Enable GitHub Pages in 3 Clicks</span>
-          </div>
-          <ol style="margin-left: 20px; font-size: 13px; display: flex; flex-direction: column; gap: 4px;">
-            <li>Go to your repository on GitHub: <strong>github.com/umahbub/WhichWay2Go</strong></li>
-            <li>Click on <strong>Settings</strong> ➔ <strong>Pages</strong> (in the left sidebar).</li>
-            <li>Under <strong>Build and deployment ➔ Source</strong>, choose <strong>Deploy from a branch</strong>.</li>
-            <li>Select Branch: <strong>main</strong>, Folder: <strong>/ (root)</strong>, and click <strong>Save</strong>.</li>
-          </ol>
-        </div>
-
-        <div class="guide-step-card">
-          <div class="guide-step-header">
-            <span>Step 3: Share Your Live Game Link!</span>
-          </div>
-          <p>Within 1–2 minutes, GitHub will build your site and publish it live at:</p>
-          <div class="guide-code-block">https://umahbub.github.io/WhichWay2Go/</div>
-          <p style="font-size: 12px; color: #94a3b8;">
-            Anyone with this link can visit on Desktop or Mobile, create a room, share the Game ID, and play together over the internet!
-          </p>
-        </div>
       </div>
     </div>
   </div>

@@ -2122,12 +2122,6 @@
         });
       }
 
-      const homeGithubGuideBtn = document.getElementById('homeGithubGuideBtn');
-      if (homeGithubGuideBtn) homeGithubGuideBtn.addEventListener('click', () => this.toggleModal('githubPagesModal', true));
-
-      const closeGithubGuideBtn = document.getElementById('closeGithubGuideBtn');
-      if (closeGithubGuideBtn) closeGithubGuideBtn.addEventListener('click', () => this.toggleModal('githubPagesModal', false));
-
       const resumeBtn = document.getElementById('homeResumeGameBtn');
       if (resumeBtn) resumeBtn.addEventListener('click', () => this.showHomeScreen(false));
 
